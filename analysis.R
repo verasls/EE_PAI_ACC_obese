@@ -8,6 +8,8 @@ source("R/get_MET.R")
 source("R/get_HR_res.R")
 source("R/get_kcal.R")
 source("R/get_PAI_categories.R")
+source("R/cross_validate_mixed_model.R")
+source("R/cross_validate_ROC_curves.R")
 
 # Prepare files -----------------------------------------------------------
 
@@ -62,6 +64,7 @@ sex <- table(samp_desc$sex)
 # ** Linear mixed models --------------------------------------------------
 
 # Hip accelerometer
+## AC
 hip_AC_model <- lme(
   fixed = VO2.kg ~ AC + I(AC^2) + Age,
   random = ~ 1 | ID,
@@ -72,6 +75,7 @@ hip_AC_model <- lme(
 )
 r2_hip_AC_model <- rsquared(hip_AC_model)
 
+## MAD
 hip_MAD_model <- lme(
   fixed = VO2.kg ~ MAD + I(MAD^2) + Age,
   random = ~ 1 | ID,
@@ -82,6 +86,7 @@ hip_MAD_model <- lme(
 )
 r2_hip_MAD_model <- rsquared(hip_MAD_model)
 
+## ENMO
 hip_ENMO_model <- lme(
   fixed = VO2.kg ~ ENMO + I(ENMO^2) + Age,
   random = ~ 1 | ID,
@@ -93,6 +98,7 @@ hip_ENMO_model <- lme(
 r2_hip_ENMO_model <- rsquared(hip_ENMO_model)
 
 # Back accelerometer
+## AC
 back_AC_model <- lme(
   fixed = VO2.kg ~ AC + I(AC^2) + Age,
   random = ~ 1 | ID,
@@ -103,6 +109,7 @@ back_AC_model <- lme(
 )
 r2_back_AC_model <- rsquared(back_AC_model)
 
+## MAD
 back_MAD_model <- lme(
   fixed = VO2.kg ~ MAD + I(MAD^2) + Age,
   random = ~ 1 | ID,
@@ -113,6 +120,7 @@ back_MAD_model <- lme(
 )
 r2_back_MAD_model <- rsquared(back_MAD_model)
 
+## ENMO
 back_ENMO_model <- lme(
   fixed = VO2.kg ~ ENMO + I(ENMO^2) + Age,
   random = ~ 1 | ID,
@@ -123,6 +131,123 @@ back_ENMO_model <- lme(
 )
 r2_back_ENMO_model <- rsquared(back_ENMO_model)
 
-# ROC curves --------------------------------------------------------------
+# ** ROC curves -----------------------------------------------------------
 
 # Hip accelerometer
+## AC
+hip_AC_ROC_SED <- roc(SED_CAT_by_MET ~ AC, ci = TRUE, data = hip, na.rm = TRUE)
+hip_AC_ROC_MOD <- roc(MOD_CAT_by_MET ~ AC, ci = TRUE, data = hip, na.rm = TRUE)
+hip_AC_ROC_VIG <- roc(VIG_CAT_by_MET ~ AC, ci = TRUE, data = hip, na.rm = TRUE)
+cp_hip_AC_ROC_SED <- coords(hip_AC_ROC_SED, x = "best", best.method = "closest.topleft")
+cp_hip_AC_ROC_MOD <- coords(hip_AC_ROC_MOD, x = "best", best.method = "closest.topleft")
+cp_hip_AC_ROC_VIG <- coords(hip_AC_ROC_VIG, x = "best", best.method = "closest.topleft")
+
+## MAD
+hip_MAD_ROC_SED <- roc(SED_CAT_by_MET ~ MAD, ci = TRUE, data = hip, na.rm = TRUE)
+hip_MAD_ROC_MOD <- roc(MOD_CAT_by_MET ~ MAD, ci = TRUE, data = hip, na.rm = TRUE)
+hip_MAD_ROC_VIG <- roc(VIG_CAT_by_MET ~ MAD, ci = TRUE, data = hip, na.rm = TRUE)
+cp_hip_MAD_ROC_SED <- coords(hip_MAD_ROC_SED, x = "best", best.method = "closest.topleft")
+cp_hip_MAD_ROC_MOD <- coords(hip_MAD_ROC_MOD, x = "best", best.method = "closest.topleft")
+cp_hip_MAD_ROC_VIG <- coords(hip_MAD_ROC_VIG, x = "best", best.method = "closest.topleft")
+
+## ENMO
+hip_ENMO_ROC_SED <- roc(SED_CAT_by_MET ~ ENMO, ci = TRUE, data = hip, na.rm = TRUE)
+hip_ENMO_ROC_MOD <- roc(MOD_CAT_by_MET ~ ENMO, ci = TRUE, data = hip, na.rm = TRUE)
+hip_ENMO_ROC_VIG <- roc(VIG_CAT_by_MET ~ ENMO, ci = TRUE, data = hip, na.rm = TRUE)
+cp_hip_ENMO_ROC_SED <- coords(hip_ENMO_ROC_SED, x = "best", best.method = "closest.topleft")
+cp_hip_ENMO_ROC_MOD <- coords(hip_ENMO_ROC_MOD, x = "best", best.method = "closest.topleft")
+cp_hip_ENMO_ROC_VIG <- coords(hip_ENMO_ROC_VIG, x = "best", best.method = "closest.topleft")
+
+# Back accelerometer
+## AC
+back_AC_ROC_SED <- roc(SED_CAT_by_MET ~ AC, ci = TRUE, data = back, na.rm = TRUE)
+back_AC_ROC_MOD <- roc(MOD_CAT_by_MET ~ AC, ci = TRUE, data = back, na.rm = TRUE)
+back_AC_ROC_VIG <- roc(VIG_CAT_by_MET ~ AC, ci = TRUE, data = back, na.rm = TRUE)
+cp_back_AC_ROC_SED <- coords(back_AC_ROC_SED, x = "best", best.method = "closest.topleft")
+cp_back_AC_ROC_MOD <- coords(back_AC_ROC_MOD, x = "best", best.method = "closest.topleft")
+cp_back_AC_ROC_VIG <- coords(back_AC_ROC_VIG, x = "best", best.method = "closest.topleft")
+
+## MAD
+back_MAD_ROC_SED <- roc(SED_CAT_by_MET ~ MAD, ci = TRUE, data = back, na.rm = TRUE)
+back_MAD_ROC_MOD <- roc(MOD_CAT_by_MET ~ MAD, ci = TRUE, data = back, na.rm = TRUE)
+back_MAD_ROC_VIG <- roc(VIG_CAT_by_MET ~ MAD, ci = TRUE, data = back, na.rm = TRUE)
+cp_back_MAD_ROC_SED <- coords(back_MAD_ROC_SED, x = "best", best.method = "closest.topleft")
+cp_back_MAD_ROC_MOD <- coords(back_MAD_ROC_MOD, x = "best", best.method = "closest.topleft")
+cp_back_MAD_ROC_VIG <- coords(back_MAD_ROC_VIG, x = "best", best.method = "closest.topleft")
+
+## ENMO
+back_ENMO_ROC_SED <- roc(SED_CAT_by_MET ~ ENMO, ci = TRUE, data = back, na.rm = TRUE)
+back_ENMO_ROC_MOD <- roc(MOD_CAT_by_MET ~ ENMO, ci = TRUE, data = back, na.rm = TRUE)
+back_ENMO_ROC_VIG <- roc(VIG_CAT_by_MET ~ ENMO, ci = TRUE, data = back, na.rm = TRUE)
+cp_back_ENMO_ROC_SED <- coords(back_ENMO_ROC_SED, x = "best", best.method = "closest.topleft")
+cp_back_ENMO_ROC_MOD <- coords(back_ENMO_ROC_MOD, x = "best", best.method = "closest.topleft")
+cp_back_ENMO_ROC_VIG <- coords(back_ENMO_ROC_VIG, x = "best", best.method = "closest.topleft")
+
+# ** Leave-one-out cross validation ---------------------------------------
+
+# Mixed models
+## Hip accelerometer
+### AC
+fix_eff  <- VO2.kg ~ AC + I(AC^2) + Age
+rand_eff <- ~ 1 | ID
+LOOCV_hip_AC_model <- do.call(rbind, (lapply(unique(hip$ID), cross_validate_mixed_model, df = hip)))
+
+### MAD
+fix_eff  <- VO2.kg ~ MAD + I(MAD^2) + Age
+rand_eff <- ~ 1 | ID
+LOOCV_hip_MAD_model <- do.call(rbind, (lapply(unique(hip$ID), cross_validate_mixed_model, df = hip)))
+
+### ENMO
+fix_eff  <- VO2.kg ~ ENMO + I(ENMO^2) + Age
+rand_eff <- ~ 1 | ID
+LOOCV_hip_ENMO_model <- do.call(rbind, (lapply(unique(hip$ID), cross_validate_mixed_model, df = hip)))
+
+## Back accelerometer
+### AC
+fix_eff  <- VO2.kg ~ AC + I(AC^2) + Age
+rand_eff <- ~ 1 | ID
+LOOCV_back_AC_model <- do.call(rbind, (lapply(unique(back$ID), cross_validate_mixed_model, df = back)))
+
+### MAD
+fix_eff  <- VO2.kg ~ MAD + I(MAD^2) + Age
+rand_eff <- ~ 1 | ID
+LOOCV_back_MAD_model <- do.call(rbind, (lapply(unique(back$ID), cross_validate_mixed_model, df = back)))
+
+### ENMO
+fix_eff  <- VO2.kg ~ ENMO + I(ENMO^2) + Age
+rand_eff <- ~ 1 | ID
+LOOCV_back_ENMO_model <- do.call(rbind, (lapply(unique(back$ID), cross_validate_mixed_model, df = back)))
+
+# ROC curves
+source("R/cross_validate_ROC_curves.R")
+## Hip accelerometer
+### AC
+LOOCV_hip_AC_ROC <- do.call(rbind, (lapply(unique(hip$ID)[-1], # drop 1st ID (36); does not have valid AC
+                                    cross_validate_ROC_curves, 
+                                    df = hip, acc_metric = "AC")))
+
+### MAD
+LOOCV_hip_mad_ROC <- do.call(rbind, (lapply(unique(hip$ID),
+                                     cross_validate_ROC_curves,
+                                     df = hip, acc_metric = "MAD")))
+
+### ENMO
+LOOCV_hip_ENMO_ROC <- do.call(rbind, (lapply(unique(hip$ID),
+                                      cross_validate_ROC_curves,
+                                      df = hip, acc_metric = "ENMO")))
+
+## Back accelerometer
+### AC
+LOOCV_back_AC_ROC <- do.call(rbind, (lapply(unique(back$ID), 
+                                     cross_validate_ROC_curves, 
+                                     df = back, acc_metric = "AC")))
+
+### MAD
+LOOCV_back_mad_ROC <- do.call(rbind, (lapply(unique(back$ID),
+                                      cross_validate_ROC_curves,
+                                      df = back, acc_metric = "MAD")))
+
+### ENMO
+LOOCV_back_ENMO_ROC <- do.call(rbind, (lapply(unique(back$ID),
+                                       cross_validate_ROC_curves,
+                                       df = back, acc_metric = "ENMO")))
