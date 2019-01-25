@@ -9,11 +9,11 @@ get_PAI_categories <- function(df) {
   #   A data frame adding colunms with computed MET categories to the 
   # imput data frame
   
-  df$SED_MET_CAT    <- NA
-  df$LIG_MET_CAT    <- NA
-  df$MOD_MET_CAT    <- NA
-  df$VIG_MET_CAT    <- NA
-  df$INTENS_MET_CAT <- NA
+  df$SED_CAT_by_MET    <- NA
+  df$LIG_CAT_by_MET    <- NA
+  df$MOD_CAT_by_MET    <- NA
+  df$VIG_CAT_by_MET    <- NA
+  df$INTENS_CAT_by_MET <- NA
   
   for (i in 1:nrow(df)) 
   {
@@ -21,40 +21,40 @@ get_PAI_categories <- function(df) {
     # Sedentary
     if (df$MET[i] <= 1.5) 
     {
-      df$SED_MET_CAT[i] <- 1
-    } else {df$SED_MET_CAT[i] <- 0}
+      df$SED_CAT_by_MET[i] <- 1
+    } else {df$SED_CAT_by_MET[i] <- 0}
     # Light
     if (df$MET[i] > 1.5 & df$MET[i] < 3) 
     {
-      df$LIG_MET_CAT[i] <- 1
-    } else {df$LIG_MET_CAT[i] <- 0}
+      df$LIG_CAT_by_MET[i] <- 1
+    } else {df$LIG_CAT_by_MET[i] <- 0}
     # Moderate
     if (df$MET[i] >= 3 & df$MET[i] < 6) 
     {
-      df$MOD_MET_CAT[i] <- 1
-    } else {df$MOD_MET_CAT[i] <- 0}
+      df$MOD_CAT_by_MET[i] <- 1
+    } else {df$MOD_CAT_by_MET[i] <- 0}
     # Vigorous
     if (df$MET[i] >= 6) 
     {
-      df$VIG_MET_CAT[i] <- 1
-    } else {df$VIG_MET_CAT[i] <- 0}
+      df$VIG_CAT_by_MET[i] <- 1
+    } else {df$VIG_CAT_by_MET[i] <- 0}
     
     # 1 = Sedentary; 2 = Light; 3 = Moderate; 4 = Vigorous
-    if (df$SED_MET_CAT[i] == 1) 
+    if (df$SED_CAT_by_MET[i] == 1) 
     {
-      df$INTENS_MET_CAT[i] <- 1
+      df$INTENS_CAT_by_MET[i] <- 1
     } else {
-      if (df$LIG_MET_CAT[i] == 1) 
+      if (df$LIG_CAT_by_MET[i] == 1) 
       {
-        df$INTENS_MET_CAT[i] <- 2
+        df$INTENS_CAT_by_MET[i] <- 2
       } else {
-        if (df$MOD_MET_CAT[i] == 1) 
+        if (df$MOD_CAT_by_MET[i] == 1) 
         {
-          df$INTENS_MET_CAT[i] <- 3
+          df$INTENS_CAT_by_MET[i] <- 3
         } else {
-          if (df$VIG_MET_CAT[i] == 1) 
+          if (df$VIG_CAT_by_MET[i] == 1) 
           {
-            df$INTENS_MET_CAT[i] <- 4
+            df$INTENS_CAT_by_MET[i] <- 4
           }
         }
       }
