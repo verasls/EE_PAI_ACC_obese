@@ -2,16 +2,20 @@
 
 library(tidyverse)
 library(nlme)
-require(piecewiseSEM)
+library(piecewiseSEM)
 library(pROC)
+library(irr)
+library(pgirmess)
 source("R/get_MET.R")
 source("R/get_HR_res.R")
 source("R/get_kcal.R")
 source("R/get_PAI_categories.R")
 source("R/cross_validate_mixed_model.R")
 source("R/cross_validate_ROC_curves.R")
+source("R/accuracy_indices.R")
+source("R/percent_agreement.R")
 
-# Prepare files -----------------------------------------------------------
+# 1. Prepare files --------------------------------------------------------
 
 cardio       <- read_csv("data/cardio_data.csv")
 hip_pri_acc  <- read_csv("data/hip_pri_acc.csv")
@@ -41,7 +45,7 @@ back <- back_pri_acc %>%
   left_join(cardio, by = c("ID", "speed")) %>% 
   select(-c(BF, V.E, V.O2, Evaluation, Date))
 
-# Sample descriptives -----------------------------------------------------
+# 2. Sample descriptives --------------------------------------------------
 
 samp_desc <- read_csv("data/sample_descriptives_data.csv")
 descriptives <- summarise(
@@ -59,9 +63,9 @@ descriptives <- summarise(
 )
 sex <- table(samp_desc$sex)
 
-# Data analysis -----------------------------------------------------------
+# 3. Data analysis --------------------------------------------------------
 
-# ** Linear mixed models --------------------------------------------------
+# * 3.1 Linear mixed models -----------------------------------------------
 
 # Hip accelerometer
 ## AC
@@ -131,7 +135,7 @@ back_ENMO_model <- lme(
 )
 r2_back_ENMO_model <- rsquared(back_ENMO_model)
 
-# ** ROC curves -----------------------------------------------------------
+# * 3.2 ROC curves --------------------------------------------------------
 
 # Hip accelerometer
 ## AC
@@ -183,43 +187,49 @@ cp_back_ENMO_ROC_SED <- coords(back_ENMO_ROC_SED, x = "best", best.method = "clo
 cp_back_ENMO_ROC_MOD <- coords(back_ENMO_ROC_MOD, x = "best", best.method = "closest.topleft")
 cp_back_ENMO_ROC_VIG <- coords(back_ENMO_ROC_VIG, x = "best", best.method = "closest.topleft")
 
-# ** Leave-one-out cross validation ---------------------------------------
+# * 3.3 Validity analysis -------------------------------------------------
 
+# ** 3.3.1 Leave-one-out cross validation ---------------------------------
 # Mixed models
 ## Hip accelerometer
 ### AC
-fix_eff  <- VO2.kg ~ AC + I(AC^2) + Age
-rand_eff <- ~ 1 | ID
+fix_eff    <- VO2.kg ~ AC + I(AC^2) + Age
+rand_eff   <- ~ 1 | ID
+acc_metric <- "AC"
 LOOCV_hip_AC_model <- do.call(rbind, (lapply(unique(hip$ID), cross_validate_mixed_model, df = hip)))
 
 ### MAD
-fix_eff  <- VO2.kg ~ MAD + I(MAD^2) + Age
-rand_eff <- ~ 1 | ID
+fix_eff    <- VO2.kg ~ MAD + I(MAD^2) + Age
+rand_eff   <- ~ 1 | ID
+acc_metric <- "MAD"
 LOOCV_hip_MAD_model <- do.call(rbind, (lapply(unique(hip$ID), cross_validate_mixed_model, df = hip)))
 
 ### ENMO
-fix_eff  <- VO2.kg ~ ENMO + I(ENMO^2) + Age
-rand_eff <- ~ 1 | ID
+fix_eff    <- VO2.kg ~ ENMO + I(ENMO^2) + Age
+rand_eff   <- ~ 1 | ID
+acc_metric <- "ENMO"
 LOOCV_hip_ENMO_model <- do.call(rbind, (lapply(unique(hip$ID), cross_validate_mixed_model, df = hip)))
 
 ## Back accelerometer
 ### AC
-fix_eff  <- VO2.kg ~ AC + I(AC^2) + Age
-rand_eff <- ~ 1 | ID
+fix_eff    <- VO2.kg ~ AC + I(AC^2) + Age
+rand_eff   <- ~ 1 | ID
+acc_metric <- "AC"
 LOOCV_back_AC_model <- do.call(rbind, (lapply(unique(back$ID), cross_validate_mixed_model, df = back)))
 
 ### MAD
-fix_eff  <- VO2.kg ~ MAD + I(MAD^2) + Age
-rand_eff <- ~ 1 | ID
+fix_eff    <- VO2.kg ~ MAD + I(MAD^2) + Age
+rand_eff   <- ~ 1 | ID
+acc_metric <- "MAD"
 LOOCV_back_MAD_model <- do.call(rbind, (lapply(unique(back$ID), cross_validate_mixed_model, df = back)))
 
 ### ENMO
-fix_eff  <- VO2.kg ~ ENMO + I(ENMO^2) + Age
-rand_eff <- ~ 1 | ID
+fix_eff    <- VO2.kg ~ ENMO + I(ENMO^2) + Age
+rand_eff   <- ~ 1 | ID
+acc_metric <- "ENMO"
 LOOCV_back_ENMO_model <- do.call(rbind, (lapply(unique(back$ID), cross_validate_mixed_model, df = back)))
 
 # ROC curves
-source("R/cross_validate_ROC_curves.R")
 ## Hip accelerometer
 ### AC
 LOOCV_hip_AC_ROC <- do.call(rbind, (lapply(unique(hip$ID)[-1], # drop 1st ID (36); does not have valid AC
@@ -227,7 +237,7 @@ LOOCV_hip_AC_ROC <- do.call(rbind, (lapply(unique(hip$ID)[-1], # drop 1st ID (36
                                     df = hip, acc_metric = "AC")))
 
 ### MAD
-LOOCV_hip_mad_ROC <- do.call(rbind, (lapply(unique(hip$ID),
+LOOCV_hip_MAD_ROC <- do.call(rbind, (lapply(unique(hip$ID),
                                      cross_validate_ROC_curves,
                                      df = hip, acc_metric = "MAD")))
 
@@ -243,7 +253,7 @@ LOOCV_back_AC_ROC <- do.call(rbind, (lapply(unique(back$ID),
                                      df = back, acc_metric = "AC")))
 
 ### MAD
-LOOCV_back_mad_ROC <- do.call(rbind, (lapply(unique(back$ID),
+LOOCV_back_MAD_ROC <- do.call(rbind, (lapply(unique(back$ID),
                                       cross_validate_ROC_curves,
                                       df = back, acc_metric = "MAD")))
 
@@ -251,3 +261,404 @@ LOOCV_back_mad_ROC <- do.call(rbind, (lapply(unique(back$ID),
 LOOCV_back_ENMO_ROC <- do.call(rbind, (lapply(unique(back$ID),
                                        cross_validate_ROC_curves,
                                        df = back, acc_metric = "ENMO")))
+
+# ** 3.3.2 Bland-Altman Plots ---------------------------------------------
+
+# Hip accelerometer
+## AC
+hip_AC_BA_plot <- ggplot(data = LOOCV_hip_AC_model) +
+  geom_point(mapping = aes(x = ((VO2.kg + VO2.kg_predicted) / 2), y = VO2.kg - VO2.kg_predicted)) +
+  geom_hline(yintercept = mean(LOOCV_hip_AC_model$VO2.kg - LOOCV_hip_AC_model$VO2.kg_predicted)) +
+  geom_hline(
+    yintercept = mean(LOOCV_hip_AC_model$VO2.kg - LOOCV_hip_AC_model$VO2.kg_predicted) +
+    1.96 * sd(LOOCV_hip_AC_model$VO2.kg - LOOCV_hip_AC_model$VO2.kg_predicted),
+    linetype = "dotted"
+    ) +
+  geom_hline(
+    yintercept = mean(LOOCV_hip_AC_model$VO2.kg - LOOCV_hip_AC_model$VO2.kg_predicted) -
+      1.96 * sd(LOOCV_hip_AC_model$VO2.kg - LOOCV_hip_AC_model$VO2.kg_predicted),
+    linetype = "dotted"
+  )
+
+## MAD
+hip_MAD_BA_plot <- ggplot(data = LOOCV_hip_MAD_model) +
+  geom_point(mapping = aes(x = ((VO2.kg + VO2.kg_predicted) / 2), y = VO2.kg - VO2.kg_predicted)) +
+  geom_hline(yintercept = mean(LOOCV_hip_MAD_model$VO2.kg - LOOCV_hip_MAD_model$VO2.kg_predicted)) +
+  geom_hline(
+    yintercept = mean(LOOCV_hip_MAD_model$VO2.kg - LOOCV_hip_MAD_model$VO2.kg_predicted) +
+      1.96 * sd(LOOCV_hip_MAD_model$VO2.kg - LOOCV_hip_MAD_model$VO2.kg_predicted),
+    linetype = "dotted"
+  ) +
+  geom_hline(
+    yintercept = mean(LOOCV_hip_MAD_model$VO2.kg - LOOCV_hip_MAD_model$VO2.kg_predicted) -
+      1.96 * sd(LOOCV_hip_MAD_model$VO2.kg - LOOCV_hip_MAD_model$VO2.kg_predicted),
+    linetype = "dotted"
+  )
+
+## ENMO
+hip_ENMO_BA_plot <- ggplot(data = LOOCV_hip_ENMO_model) +
+  geom_point(mapping = aes(x = ((VO2.kg + VO2.kg_predicted) / 2), y = VO2.kg - VO2.kg_predicted)) +
+  geom_hline(yintercept = mean(LOOCV_hip_ENMO_model$VO2.kg - LOOCV_hip_ENMO_model$VO2.kg_predicted)) +
+  geom_hline(
+    yintercept = mean(LOOCV_hip_ENMO_model$VO2.kg - LOOCV_hip_ENMO_model$VO2.kg_predicted) +
+      1.96 * sd(LOOCV_hip_ENMO_model$VO2.kg - LOOCV_hip_ENMO_model$VO2.kg_predicted),
+    linetype = "dotted"
+  ) +
+  geom_hline(
+    yintercept = mean(LOOCV_hip_ENMO_model$VO2.kg - LOOCV_hip_ENMO_model$VO2.kg_predicted) -
+      1.96 * sd(LOOCV_hip_ENMO_model$VO2.kg - LOOCV_hip_ENMO_model$VO2.kg_predicted),
+    linetype = "dotted"
+  )
+
+# Back accelerometer
+## AC
+back_AC_BA_plot <- ggplot(data = LOOCV_back_AC_model) +
+  geom_point(mapping = aes(x = ((VO2.kg + VO2.kg_predicted) / 2), y = VO2.kg - VO2.kg_predicted)) +
+  geom_hline(yintercept = mean(LOOCV_back_AC_model$VO2.kg - LOOCV_back_AC_model$VO2.kg_predicted)) +
+  geom_hline(
+    yintercept = mean(LOOCV_back_AC_model$VO2.kg - LOOCV_back_AC_model$VO2.kg_predicted) +
+      1.96 * sd(LOOCV_back_AC_model$VO2.kg - LOOCV_back_AC_model$VO2.kg_predicted),
+    linetype = "dotted"
+  ) +
+  geom_hline(
+    yintercept = mean(LOOCV_back_AC_model$VO2.kg - LOOCV_back_AC_model$VO2.kg_predicted) -
+      1.96 * sd(LOOCV_back_AC_model$VO2.kg - LOOCV_back_AC_model$VO2.kg_predicted),
+    linetype = "dotted"
+  )
+
+## MAD
+back_MAD_BA_plot <- ggplot(data = LOOCV_back_MAD_model) +
+  geom_point(mapping = aes(x = ((VO2.kg + VO2.kg_predicted) / 2), y = VO2.kg - VO2.kg_predicted)) +
+  geom_hline(yintercept = mean(LOOCV_back_MAD_model$VO2.kg - LOOCV_back_MAD_model$VO2.kg_predicted)) +
+  geom_hline(
+    yintercept = mean(LOOCV_back_MAD_model$VO2.kg - LOOCV_back_MAD_model$VO2.kg_predicted) +
+      1.96 * sd(LOOCV_back_MAD_model$VO2.kg - LOOCV_back_MAD_model$VO2.kg_predicted),
+    linetype = "dotted"
+  ) +
+  geom_hline(
+    yintercept = mean(LOOCV_back_MAD_model$VO2.kg - LOOCV_back_MAD_model$VO2.kg_predicted) -
+      1.96 * sd(LOOCV_back_MAD_model$VO2.kg - LOOCV_back_MAD_model$VO2.kg_predicted),
+    linetype = "dotted"
+  )
+
+## ENMO
+back_ENMO_BA_plot <- ggplot(data = LOOCV_back_ENMO_model) +
+  geom_point(mapping = aes(x = ((VO2.kg + VO2.kg_predicted) / 2), y = VO2.kg - VO2.kg_predicted)) +
+  geom_hline(yintercept = mean(LOOCV_back_ENMO_model$VO2.kg - LOOCV_back_ENMO_model$VO2.kg_predicted)) +
+  geom_hline(
+    yintercept = mean(LOOCV_back_ENMO_model$VO2.kg - LOOCV_back_ENMO_model$VO2.kg_predicted) +
+      1.96 * sd(LOOCV_back_ENMO_model$VO2.kg - LOOCV_back_ENMO_model$VO2.kg_predicted),
+    linetype = "dotted"
+  ) +
+  geom_hline(
+    yintercept = mean(LOOCV_back_ENMO_model$VO2.kg - LOOCV_back_ENMO_model$VO2.kg_predicted) -
+      1.96 * sd(LOOCV_back_ENMO_model$VO2.kg - LOOCV_back_ENMO_model$VO2.kg_predicted),
+    linetype = "dotted"
+  )
+
+# ** 3.3.3 Indices of accuracy --------------------------------------------
+
+# Hip accelerometer
+## AC
+hip_AC_model_accuracy <- accuracy_indices(LOOCV_hip_AC_model, "VO2.kg", "VO2.kg_predicted")
+
+## MAD
+hip_MAD_model_acccuracy <- accuracy_indices(LOOCV_hip_MAD_model, "VO2.kg", "VO2.kg_predicted")
+
+## ENMO
+hip_ENMO_model_acccuracy <- accuracy_indices(LOOCV_hip_ENMO_model, "VO2.kg", "VO2.kg_predicted")
+
+# Back accelerometer
+## AC
+back_AC_model_accuracy <- accuracy_indices(LOOCV_back_AC_model, "VO2.kg", "VO2.kg_predicted")
+
+## MAD
+back_MAD_model_acccuracy <- accuracy_indices(LOOCV_back_MAD_model, "VO2.kg", "VO2.kg_predicted")
+
+## ENMO
+back_ENMO_model_acccuracy <- accuracy_indices(LOOCV_back_ENMO_model, "VO2.kg", "VO2.kg_predicted")
+
+# ** 3.3.4 Kappa statistic ------------------------------------------------
+
+# Hip accelerometer
+## AC
+kappa_hip_AC_SED  <- kappa2(select(LOOCV_hip_AC_ROC, SED_CAT_by_MET, SED_CAT_by_ROC))
+kappa_hip_AC_MOD  <- kappa2(select(LOOCV_hip_AC_ROC, MOD_CAT_by_MET, MOD_CAT_by_ROC))
+kappa_hip_AC_VIG  <- kappa2(select(LOOCV_hip_AC_ROC, VIG_CAT_by_MET, VIG_CAT_by_ROC))
+kappa_hip_AC_glob <- kappa2(select(LOOCV_hip_AC_ROC, INTENS_CAT_by_MET, INTENS_CAT_by_ROC), 
+                            weight = "squared")
+
+## MAD
+kappa_hip_MAD_SED  <- kappa2(select(LOOCV_hip_MAD_ROC, SED_CAT_by_MET, SED_CAT_by_ROC))
+kappa_hip_MAD_MOD  <- kappa2(select(LOOCV_hip_MAD_ROC, MOD_CAT_by_MET, MOD_CAT_by_ROC))
+kappa_hip_MAD_VIG  <- kappa2(select(LOOCV_hip_MAD_ROC, VIG_CAT_by_MET, VIG_CAT_by_ROC))
+kappa_hip_MAD_glob <- kappa2(select(LOOCV_hip_MAD_ROC, INTENS_CAT_by_MET, INTENS_CAT_by_ROC), 
+                             weight = "squared")
+
+## ENMO
+kappa_hip_ENMO_SED  <- kappa2(select(LOOCV_hip_ENMO_ROC, SED_CAT_by_MET, SED_CAT_by_ROC))
+kappa_hip_ENMO_MOD  <- kappa2(select(LOOCV_hip_ENMO_ROC, MOD_CAT_by_MET, MOD_CAT_by_ROC))
+kappa_hip_ENMO_VIG  <- kappa2(select(LOOCV_hip_ENMO_ROC, VIG_CAT_by_MET, VIG_CAT_by_ROC))
+kappa_hip_ENMO_glob <- kappa2(select(LOOCV_hip_ENMO_ROC, INTENS_CAT_by_MET, INTENS_CAT_by_ROC), 
+                              weight = "squared")
+
+# Back accelerometer
+## AC
+kappa_back_AC_SED  <- kappa2(select(LOOCV_back_AC_ROC, SED_CAT_by_MET, SED_CAT_by_ROC))
+kappa_back_AC_MOD  <- kappa2(select(LOOCV_back_AC_ROC, MOD_CAT_by_MET, MOD_CAT_by_ROC))
+kappa_back_AC_VIG  <- kappa2(select(LOOCV_back_AC_ROC, VIG_CAT_by_MET, VIG_CAT_by_ROC))
+kappa_back_AC_glob <- kappa2(select(LOOCV_back_AC_ROC, INTENS_CAT_by_MET, INTENS_CAT_by_ROC), 
+                             weight = "squared")
+
+## MAD
+kappa_back_MAD_SED  <- kappa2(select(LOOCV_back_MAD_ROC, SED_CAT_by_MET, SED_CAT_by_ROC))
+kappa_back_MAD_MOD  <- kappa2(select(LOOCV_back_MAD_ROC, MOD_CAT_by_MET, MOD_CAT_by_ROC))
+kappa_back_MAD_VIG  <- kappa2(select(LOOCV_back_MAD_ROC, VIG_CAT_by_MET, VIG_CAT_by_ROC))
+kappa_back_MAD_glob <- kappa2(select(LOOCV_back_MAD_ROC, INTENS_CAT_by_MET, INTENS_CAT_by_ROC), 
+                              weight = "squared")
+
+## ENMO
+kappa_back_ENMO_SED  <- kappa2(select(LOOCV_back_ENMO_ROC, SED_CAT_by_MET, SED_CAT_by_ROC))
+kappa_back_ENMO_MOD  <- kappa2(select(LOOCV_back_ENMO_ROC, MOD_CAT_by_MET, MOD_CAT_by_ROC))
+kappa_back_ENMO_VIG  <- kappa2(select(LOOCV_back_ENMO_ROC, VIG_CAT_by_MET, VIG_CAT_by_ROC))
+kappa_back_ENMO_glob <- kappa2(select(LOOCV_back_ENMO_ROC, INTENS_CAT_by_MET, INTENS_CAT_by_ROC), 
+                               weight = "squared")
+
+# ** 3.3.5 Percent agreement ----------------------------------------------
+
+# Hip accelerometer
+## AC
+perc_agree_hip_AC_ROC <- percent_agreement(LOOCV_hip_AC_ROC, "INTENS_CAT_by_MET", "INTENS_CAT_by_ROC")
+
+## MAD
+perc_agree_hip_MAD_ROC <- percent_agreement(LOOCV_hip_MAD_ROC, "INTENS_CAT_by_MET", "INTENS_CAT_by_ROC")
+
+## ENMO
+perc_agree_hip_ENMO_ROC <- percent_agreement(LOOCV_hip_ENMO_ROC, "INTENS_CAT_by_MET", "INTENS_CAT_by_ROC")
+
+# Back accelerometer
+## AC
+perc_agree_back_AC_ROC <- percent_agreement(LOOCV_back_AC_ROC, "INTENS_CAT_by_MET", "INTENS_CAT_by_ROC")
+
+## MAD
+perc_agree_back_MAD_ROC <- percent_agreement(LOOCV_back_MAD_ROC, "INTENS_CAT_by_MET", "INTENS_CAT_by_ROC")
+
+## ENMO
+perc_agree_back_ENMO_ROC <- percent_agreement(LOOCV_back_ENMO_ROC, "INTENS_CAT_by_MET", "INTENS_CAT_by_ROC")
+
+# ** 3.3.6 Prediction accuracy comparison ---------------------------------
+
+# Hip accelerometer (among accelerometer metrics)
+## Building data frame
+pred_error_hip_AC <- LOOCV_hip_AC_model %>% 
+  select(ID, speed, VO2.kg, VO2.kg_predicted) %>% 
+  mutate(abs_error_hip_AC = abs(VO2.kg - VO2.kg_predicted)) %>% 
+  select(ID, speed, abs_error_hip_AC)
+
+pred_error_hip_MAD <- LOOCV_hip_MAD_model %>% 
+  select(ID, speed, VO2.kg, VO2.kg_predicted) %>% 
+  mutate(abs_error_hip_MAD = abs(VO2.kg - VO2.kg_predicted)) %>% 
+  select(ID, speed, abs_error_hip_MAD)
+
+pred_error_hip_ENMO <- LOOCV_hip_ENMO_model %>% 
+  select(ID, speed, VO2.kg, VO2.kg_predicted) %>% 
+  mutate(abs_error_hip_ENMO = abs(VO2.kg - VO2.kg_predicted)) %>% 
+  select(ID, speed, abs_error_hip_ENMO)
+
+hip_ANOVA_df <- pred_error_hip_AC %>%
+  left_join(pred_error_hip_MAD, by = c("ID", "speed")) %>% 
+  left_join(pred_error_hip_ENMO, by = c("ID", "speed")) %>% 
+  gather(
+    abs_error_hip_AC, abs_error_hip_MAD, abs_error_hip_ENMO,
+    key = metric,
+    value = absolute_error
+  )
+
+## Running test
+hip_ANOVA <- aov(absolute_error ~ metric, data = hip_ANOVA_df)
+summary(hip_ANOVA)
+
+# Back accelerometer (among accelerometer metrics)
+## Building data frame
+pred_error_back_AC <- LOOCV_back_AC_model %>% 
+  select(ID, speed, VO2.kg, VO2.kg_predicted) %>% 
+  mutate(abs_error_back_AC = abs(VO2.kg - VO2.kg_predicted)) %>% 
+  select(ID, speed, abs_error_back_AC)
+
+pred_error_back_MAD <- LOOCV_back_MAD_model %>% 
+  select(ID, speed, VO2.kg, VO2.kg_predicted) %>% 
+  mutate(abs_error_back_MAD = abs(VO2.kg - VO2.kg_predicted)) %>% 
+  select(ID, speed, abs_error_back_MAD)
+
+pred_error_back_ENMO <- LOOCV_back_ENMO_model %>% 
+  select(ID, speed, VO2.kg, VO2.kg_predicted) %>% 
+  mutate(abs_error_back_ENMO = abs(VO2.kg - VO2.kg_predicted)) %>% 
+  select(ID, speed, abs_error_back_ENMO)
+
+back_ANOVA_df <- pred_error_back_AC %>%
+  left_join(pred_error_back_MAD, by = c("ID", "speed")) %>% 
+  left_join(pred_error_back_ENMO, by = c("ID", "speed")) %>% 
+  gather(
+    abs_error_back_AC, abs_error_back_MAD, abs_error_back_ENMO,
+    key = metric,
+    value = absolute_error
+  )
+
+## Running test
+back_ANOVA <- aov(absolute_error ~ metric, data = back_ANOVA_df)
+summary(back_ANOVA)
+
+# AC metric (between accelerometers)
+## Building data frame
+AC_ttest_df <- pred_error_hip_AC %>% 
+  left_join(pred_error_back_AC, by = c("ID", "speed")) %>% 
+  gather(
+    abs_error_hip_AC, abs_error_back_AC,
+    key = placement,
+    value = absolute_error
+  )
+
+## Running test
+AC_ttest <- t.test(absolute_error ~ placement, data = AC_ttest_df)
+AC_ttest
+
+# MAD metric (between accelerometers)
+## Building data frame
+MAD_ttest_df <- pred_error_hip_MAD %>% 
+  left_join(pred_error_back_MAD, by = c("ID", "speed")) %>% 
+  gather(
+    abs_error_hip_MAD, abs_error_back_MAD,
+    key = placement,
+    value = absolute_error
+  )
+
+## Running test
+MAD_ttest <- t.test(absolute_error ~ placement, data = MAD_ttest_df)
+MAD_ttest
+
+# ENMO metric (between accelerometers)
+## Building data frame
+ENMO_ttest_df <- pred_error_hip_ENMO %>% 
+  left_join(pred_error_back_ENMO, by = c("ID", "speed")) %>% 
+  gather(
+    abs_error_hip_ENMO, abs_error_back_ENMO,
+    key = placement,
+    value = absolute_error
+  )
+
+## Running test
+ENMO_ttest <- t.test(absolute_error ~ placement, data = ENMO_ttest_df)
+ENMO_ttest
+
+# ** 3.3.7 Classification agreement comparison ----------------------------
+
+# Hip accelerometer (among accelerometer metrics)
+## Building data frame
+class_error_hip_AC <- LOOCV_hip_AC_ROC %>% 
+  select(ID, speed, INTENS_CAT_by_MET, INTENS_CAT_by_ROC) %>% 
+  mutate(abs_error_hip_AC = abs(INTENS_CAT_by_MET - INTENS_CAT_by_ROC)) %>% 
+  select(ID, speed, abs_error_hip_AC)
+
+class_error_hip_MAD <- LOOCV_hip_MAD_ROC %>% 
+  select(ID, speed, INTENS_CAT_by_MET, INTENS_CAT_by_ROC) %>% 
+  mutate(abs_error_hip_MAD = abs(INTENS_CAT_by_MET - INTENS_CAT_by_ROC)) %>% 
+  select(ID, speed, abs_error_hip_MAD)
+
+class_error_hip_ENMO <- LOOCV_hip_ENMO_ROC %>% 
+  select(ID, speed, INTENS_CAT_by_MET, INTENS_CAT_by_ROC) %>% 
+  mutate(abs_error_hip_ENMO = abs(INTENS_CAT_by_MET - INTENS_CAT_by_ROC)) %>% 
+  select(ID, speed, abs_error_hip_ENMO)
+
+hip_KW_df <- class_error_hip_AC %>% 
+  left_join(class_error_hip_MAD, by = c("ID", "speed")) %>% 
+  left_join(class_error_hip_ENMO, by = c("ID", "speed")) %>% 
+  gather(
+    abs_error_hip_AC, abs_error_hip_MAD, abs_error_hip_ENMO,
+    key = metric,
+    value = absolute_error
+  )
+hip_KW_df$metric <- as_factor(hip_KW_df$metric)
+
+## Running test
+hip_KW <- kruskal.test(absolute_error ~ metric, data = hip_KW_df)
+hip_KW
+
+# Back accelerometer (among accelerometer metrics)
+## Building data frame
+class_error_back_AC <- LOOCV_back_AC_ROC %>% 
+  select(ID, speed, INTENS_CAT_by_MET, INTENS_CAT_by_ROC) %>% 
+  mutate(abs_error_back_AC = abs(INTENS_CAT_by_MET - INTENS_CAT_by_ROC)) %>% 
+  select(ID, speed, abs_error_back_AC)
+
+class_error_back_MAD <- LOOCV_back_MAD_ROC %>% 
+  select(ID, speed, INTENS_CAT_by_MET, INTENS_CAT_by_ROC) %>% 
+  mutate(abs_error_back_MAD = abs(INTENS_CAT_by_MET - INTENS_CAT_by_ROC)) %>% 
+  select(ID, speed, abs_error_back_MAD)
+
+class_error_back_ENMO <- LOOCV_back_ENMO_ROC %>% 
+  select(ID, speed, INTENS_CAT_by_MET, INTENS_CAT_by_ROC) %>% 
+  mutate(abs_error_back_ENMO = abs(INTENS_CAT_by_MET - INTENS_CAT_by_ROC)) %>% 
+  select(ID, speed, abs_error_back_ENMO)
+
+back_KW_df <- class_error_back_AC %>% 
+  left_join(class_error_back_MAD, by = c("ID", "speed")) %>% 
+  left_join(class_error_back_ENMO, by = c("ID", "speed")) %>% 
+  gather(
+    abs_error_back_AC, abs_error_back_MAD, abs_error_back_ENMO,
+    key = metric,
+    value = absolute_error
+  )
+back_KW_df$metric <- as_factor(back_KW_df$metric)
+
+## Running test
+back_KW <- kruskal.test(absolute_error ~ metric, data = back_KW_df)
+back_KW
+
+## Post hoc
+back_posthoc <- kruskalmc(absolute_error ~ metric, data = back_KW_df)
+back_posthoc
+
+# AC metric (between accelerometers)
+## Building data frame
+AC_wilcox_df <- class_error_hip_AC %>% 
+  left_join(class_error_back_AC, by = c("ID", "speed")) %>% 
+  gather(
+    abs_error_hip_AC, abs_error_back_AC,
+    key = placement,
+    value = absolute_error
+  )
+AC_wilcox_df$placement <- as_factor(AC_wilcox_df$placement)
+
+## Running test
+AC_wilcox <- wilcox.test(absolute_error ~ placement, data = AC_wilcox_df)
+AC_wilcox
+
+# MAD metric (between MADcelerometers)
+## Building data frame
+MAD_wilcox_df <- class_error_hip_MAD %>% 
+  left_join(class_error_back_MAD, by = c("ID", "speed")) %>% 
+  gather(
+    abs_error_hip_MAD, abs_error_back_MAD,
+    key = placement,
+    value = absolute_error
+  )
+MAD_wilcox_df$placement <- as_factor(MAD_wilcox_df$placement)
+
+## Running test
+MAD_wilcox <- wilcox.test(absolute_error ~ placement, data = MAD_wilcox_df)
+MAD_wilcox
+
+# ENMO metric (between ENMOcelerometers)
+## Building data frame
+ENMO_wilcox_df <- class_error_hip_ENMO %>% 
+  left_join(class_error_back_ENMO, by = c("ID", "speed")) %>% 
+  gather(
+    abs_error_hip_ENMO, abs_error_back_ENMO,
+    key = placement,
+    value = absolute_error
+  )
+ENMO_wilcox_df$placement <- as_factor(ENMO_wilcox_df$placement)
+
+## Running test
+ENMO_wilcox <- wilcox.test(absolute_error ~ placement, data = ENMO_wilcox_df)
+ENMO_wilcox
