@@ -15,6 +15,10 @@ cross_validate_mixed_model <- function(df, ID_num) {
   require(tidyverse)
   require(nlme)
   
+  # To correct for not all subjects having NA in all accelerometer metrics values
+  all_metrics      <- c("AC", "MAD", "ENMO")
+  not_used_metrics <- all_metrics[-which(all_metrics == acc_metric)]
+  df <- select(df, -not_used_metrics)
   df <- na.omit(df)
   
   training <- filter(df, ID != ID_num)
