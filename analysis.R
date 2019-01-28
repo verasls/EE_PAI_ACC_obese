@@ -7,9 +7,9 @@ library(pROC)
 library(irr)
 library(pgirmess)
 source("R/get_MET.R")
+source("R/get_PAI_categories.R")
 source("R/get_HR_res.R")
 source("R/get_kcal.R")
-source("R/get_PAI_categories.R")
 source("R/cross_validate_mixed_model.R")
 source("R/cross_validate_ROC_curves.R")
 source("R/accuracy_indices.R")
@@ -70,7 +70,7 @@ sex <- table(samp_desc$sex)
 # Hip accelerometer
 ## AC
 hip_AC_model <- lme(
-  fixed = VO2.kg ~ AC + I(AC^2) + Age,
+  fixed = kcal ~ AC + I(AC^2) + Weight,
   random = ~ 1 | ID,
   method = "ML",
   correlation = corAR1(),
@@ -81,7 +81,7 @@ r2_hip_AC_model <- rsquared(hip_AC_model)
 
 ## MAD
 hip_MAD_model <- lme(
-  fixed = VO2.kg ~ MAD + I(MAD^2) + Age,
+  fixed = kcal ~ MAD + I(MAD^2) + Weight,
   random = ~ 1 | ID,
   method = "ML",
   correlation = corAR1(),
@@ -92,7 +92,7 @@ r2_hip_MAD_model <- rsquared(hip_MAD_model)
 
 ## ENMO
 hip_ENMO_model <- lme(
-  fixed = VO2.kg ~ ENMO + I(ENMO^2) + Age,
+  fixed = kcal ~ ENMO + I(ENMO^2) + Weight,
   random = ~ 1 | ID,
   method = "ML",
   correlation = corAR1(),
@@ -104,7 +104,7 @@ r2_hip_ENMO_model <- rsquared(hip_ENMO_model)
 # Back accelerometer
 ## AC
 back_AC_model <- lme(
-  fixed = VO2.kg ~ AC + I(AC^2) + Age,
+  fixed = kcal ~ AC + I(AC^2) + Weight,
   random = ~ 1 | ID,
   method = "ML",
   correlation = corAR1(),
@@ -115,7 +115,7 @@ r2_back_AC_model <- rsquared(back_AC_model)
 
 ## MAD
 back_MAD_model <- lme(
-  fixed = VO2.kg ~ MAD + I(MAD^2) + Age,
+  fixed = kcal ~ MAD + I(MAD^2) + Weight,
   random = ~ 1 | ID,
   method = "ML",
   correlation = corAR1(),
@@ -126,7 +126,7 @@ r2_back_MAD_model <- rsquared(back_MAD_model)
 
 ## ENMO
 back_ENMO_model <- lme(
-  fixed = VO2.kg ~ ENMO + I(ENMO^2) + Age,
+  fixed = kcal ~ ENMO + I(ENMO^2) + Weight,
   random = ~ 1 | ID,
   method = "ML",
   correlation = corAR1(),
@@ -193,38 +193,38 @@ cp_back_ENMO_ROC_VIG <- coords(back_ENMO_ROC_VIG, x = "best", best.method = "clo
 # Mixed models
 ## Hip accelerometer
 ### AC
-fix_eff    <- VO2.kg ~ AC + I(AC^2) + Age
+fix_eff    <- kcal ~ AC + I(AC^2) + Weight
 rand_eff   <- ~ 1 | ID
 acc_metric <- "AC"
 LOOCV_hip_AC_model <- do.call(rbind, (lapply(unique(hip$ID), cross_validate_mixed_model, df = hip)))
 
 ### MAD
-fix_eff    <- VO2.kg ~ MAD + I(MAD^2) + Age
+fix_eff    <- kcal ~ MAD + I(MAD^2) + Weight
 rand_eff   <- ~ 1 | ID
 acc_metric <- "MAD"
 LOOCV_hip_MAD_model <- do.call(rbind, (lapply(unique(hip$ID), cross_validate_mixed_model, df = hip)))
 
 ### ENMO
-fix_eff    <- VO2.kg ~ ENMO + I(ENMO^2) + Age
+fix_eff    <- kcal ~ ENMO + I(ENMO^2) + Weight
 rand_eff   <- ~ 1 | ID
 acc_metric <- "ENMO"
 LOOCV_hip_ENMO_model <- do.call(rbind, (lapply(unique(hip$ID), cross_validate_mixed_model, df = hip)))
 
 ## Back accelerometer
 ### AC
-fix_eff    <- VO2.kg ~ AC + I(AC^2) + Age
+fix_eff    <- kcal ~ AC + I(AC^2) + Weight
 rand_eff   <- ~ 1 | ID
 acc_metric <- "AC"
 LOOCV_back_AC_model <- do.call(rbind, (lapply(unique(back$ID), cross_validate_mixed_model, df = back)))
 
 ### MAD
-fix_eff    <- VO2.kg ~ MAD + I(MAD^2) + Age
+fix_eff    <- kcal ~ MAD + I(MAD^2) + Weight
 rand_eff   <- ~ 1 | ID
 acc_metric <- "MAD"
 LOOCV_back_MAD_model <- do.call(rbind, (lapply(unique(back$ID), cross_validate_mixed_model, df = back)))
 
 ### ENMO
-fix_eff    <- VO2.kg ~ ENMO + I(ENMO^2) + Age
+fix_eff    <- kcal ~ ENMO + I(ENMO^2) + Weight
 rand_eff   <- ~ 1 | ID
 acc_metric <- "ENMO"
 LOOCV_back_ENMO_model <- do.call(rbind, (lapply(unique(back$ID), cross_validate_mixed_model, df = back)))
@@ -267,92 +267,92 @@ LOOCV_back_ENMO_ROC <- do.call(rbind, (lapply(unique(back$ID),
 # Hip accelerometer
 ## AC
 hip_AC_BA_plot <- ggplot(data = LOOCV_hip_AC_model) +
-  geom_point(mapping = aes(x = ((VO2.kg + VO2.kg_predicted) / 2), y = VO2.kg - VO2.kg_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_hip_AC_model$VO2.kg - LOOCV_hip_AC_model$VO2.kg_predicted)) +
+  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
+  geom_hline(yintercept = mean(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted)) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_AC_model$VO2.kg - LOOCV_hip_AC_model$VO2.kg_predicted) +
-    1.96 * sd(LOOCV_hip_AC_model$VO2.kg - LOOCV_hip_AC_model$VO2.kg_predicted),
+    yintercept = mean(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted) +
+    1.96 * sd(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted),
     linetype = "dotted"
     ) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_AC_model$VO2.kg - LOOCV_hip_AC_model$VO2.kg_predicted) -
-      1.96 * sd(LOOCV_hip_AC_model$VO2.kg - LOOCV_hip_AC_model$VO2.kg_predicted),
+    yintercept = mean(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted) -
+      1.96 * sd(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted),
     linetype = "dotted"
   )
 
 ## MAD
 hip_MAD_BA_plot <- ggplot(data = LOOCV_hip_MAD_model) +
-  geom_point(mapping = aes(x = ((VO2.kg + VO2.kg_predicted) / 2), y = VO2.kg - VO2.kg_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_hip_MAD_model$VO2.kg - LOOCV_hip_MAD_model$VO2.kg_predicted)) +
+  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
+  geom_hline(yintercept = mean(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted)) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_MAD_model$VO2.kg - LOOCV_hip_MAD_model$VO2.kg_predicted) +
-      1.96 * sd(LOOCV_hip_MAD_model$VO2.kg - LOOCV_hip_MAD_model$VO2.kg_predicted),
+    yintercept = mean(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted) +
+      1.96 * sd(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_MAD_model$VO2.kg - LOOCV_hip_MAD_model$VO2.kg_predicted) -
-      1.96 * sd(LOOCV_hip_MAD_model$VO2.kg - LOOCV_hip_MAD_model$VO2.kg_predicted),
+    yintercept = mean(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted) -
+      1.96 * sd(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted),
     linetype = "dotted"
   )
 
 ## ENMO
 hip_ENMO_BA_plot <- ggplot(data = LOOCV_hip_ENMO_model) +
-  geom_point(mapping = aes(x = ((VO2.kg + VO2.kg_predicted) / 2), y = VO2.kg - VO2.kg_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_hip_ENMO_model$VO2.kg - LOOCV_hip_ENMO_model$VO2.kg_predicted)) +
+  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
+  geom_hline(yintercept = mean(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted)) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_ENMO_model$VO2.kg - LOOCV_hip_ENMO_model$VO2.kg_predicted) +
-      1.96 * sd(LOOCV_hip_ENMO_model$VO2.kg - LOOCV_hip_ENMO_model$VO2.kg_predicted),
+    yintercept = mean(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted) +
+      1.96 * sd(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_ENMO_model$VO2.kg - LOOCV_hip_ENMO_model$VO2.kg_predicted) -
-      1.96 * sd(LOOCV_hip_ENMO_model$VO2.kg - LOOCV_hip_ENMO_model$VO2.kg_predicted),
+    yintercept = mean(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted) -
+      1.96 * sd(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted),
     linetype = "dotted"
   )
 
 # Back accelerometer
 ## AC
 back_AC_BA_plot <- ggplot(data = LOOCV_back_AC_model) +
-  geom_point(mapping = aes(x = ((VO2.kg + VO2.kg_predicted) / 2), y = VO2.kg - VO2.kg_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_back_AC_model$VO2.kg - LOOCV_back_AC_model$VO2.kg_predicted)) +
+  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
+  geom_hline(yintercept = mean(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted)) +
   geom_hline(
-    yintercept = mean(LOOCV_back_AC_model$VO2.kg - LOOCV_back_AC_model$VO2.kg_predicted) +
-      1.96 * sd(LOOCV_back_AC_model$VO2.kg - LOOCV_back_AC_model$VO2.kg_predicted),
+    yintercept = mean(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted) +
+      1.96 * sd(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_back_AC_model$VO2.kg - LOOCV_back_AC_model$VO2.kg_predicted) -
-      1.96 * sd(LOOCV_back_AC_model$VO2.kg - LOOCV_back_AC_model$VO2.kg_predicted),
+    yintercept = mean(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted) -
+      1.96 * sd(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted),
     linetype = "dotted"
   )
 
 ## MAD
 back_MAD_BA_plot <- ggplot(data = LOOCV_back_MAD_model) +
-  geom_point(mapping = aes(x = ((VO2.kg + VO2.kg_predicted) / 2), y = VO2.kg - VO2.kg_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_back_MAD_model$VO2.kg - LOOCV_back_MAD_model$VO2.kg_predicted)) +
+  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
+  geom_hline(yintercept = mean(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted)) +
   geom_hline(
-    yintercept = mean(LOOCV_back_MAD_model$VO2.kg - LOOCV_back_MAD_model$VO2.kg_predicted) +
-      1.96 * sd(LOOCV_back_MAD_model$VO2.kg - LOOCV_back_MAD_model$VO2.kg_predicted),
+    yintercept = mean(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted) +
+      1.96 * sd(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_back_MAD_model$VO2.kg - LOOCV_back_MAD_model$VO2.kg_predicted) -
-      1.96 * sd(LOOCV_back_MAD_model$VO2.kg - LOOCV_back_MAD_model$VO2.kg_predicted),
+    yintercept = mean(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted) -
+      1.96 * sd(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted),
     linetype = "dotted"
   )
 
 ## ENMO
 back_ENMO_BA_plot <- ggplot(data = LOOCV_back_ENMO_model) +
-  geom_point(mapping = aes(x = ((VO2.kg + VO2.kg_predicted) / 2), y = VO2.kg - VO2.kg_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_back_ENMO_model$VO2.kg - LOOCV_back_ENMO_model$VO2.kg_predicted)) +
+  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
+  geom_hline(yintercept = mean(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted)) +
   geom_hline(
-    yintercept = mean(LOOCV_back_ENMO_model$VO2.kg - LOOCV_back_ENMO_model$VO2.kg_predicted) +
-      1.96 * sd(LOOCV_back_ENMO_model$VO2.kg - LOOCV_back_ENMO_model$VO2.kg_predicted),
+    yintercept = mean(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted) +
+      1.96 * sd(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_back_ENMO_model$VO2.kg - LOOCV_back_ENMO_model$VO2.kg_predicted) -
-      1.96 * sd(LOOCV_back_ENMO_model$VO2.kg - LOOCV_back_ENMO_model$VO2.kg_predicted),
+    yintercept = mean(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted) -
+      1.96 * sd(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted),
     linetype = "dotted"
   )
 
@@ -360,23 +360,23 @@ back_ENMO_BA_plot <- ggplot(data = LOOCV_back_ENMO_model) +
 
 # Hip accelerometer
 ## AC
-hip_AC_model_accuracy <- accuracy_indices(LOOCV_hip_AC_model, "VO2.kg", "VO2.kg_predicted")
+hip_AC_model_accuracy <- accuracy_indices(LOOCV_hip_AC_model, "kcal", "kcal_predicted")
 
 ## MAD
-hip_MAD_model_acccuracy <- accuracy_indices(LOOCV_hip_MAD_model, "VO2.kg", "VO2.kg_predicted")
+hip_MAD_model_acccuracy <- accuracy_indices(LOOCV_hip_MAD_model, "kcal", "kcal_predicted")
 
 ## ENMO
-hip_ENMO_model_acccuracy <- accuracy_indices(LOOCV_hip_ENMO_model, "VO2.kg", "VO2.kg_predicted")
+hip_ENMO_model_acccuracy <- accuracy_indices(LOOCV_hip_ENMO_model, "kcal", "kcal_predicted")
 
 # Back accelerometer
 ## AC
-back_AC_model_accuracy <- accuracy_indices(LOOCV_back_AC_model, "VO2.kg", "VO2.kg_predicted")
+back_AC_model_accuracy <- accuracy_indices(LOOCV_back_AC_model, "kcal", "kcal_predicted")
 
 ## MAD
-back_MAD_model_acccuracy <- accuracy_indices(LOOCV_back_MAD_model, "VO2.kg", "VO2.kg_predicted")
+back_MAD_model_acccuracy <- accuracy_indices(LOOCV_back_MAD_model, "kcal", "kcal_predicted")
 
 ## ENMO
-back_ENMO_model_acccuracy <- accuracy_indices(LOOCV_back_ENMO_model, "VO2.kg", "VO2.kg_predicted")
+back_ENMO_model_acccuracy <- accuracy_indices(LOOCV_back_ENMO_model, "kcal", "kcal_predicted")
 
 # ** 3.3.4 Kappa statistic ------------------------------------------------
 
@@ -451,18 +451,18 @@ perc_agree_back_ENMO_ROC <- percent_agreement(LOOCV_back_ENMO_ROC, "INTENS_CAT_b
 # Hip accelerometer (among accelerometer metrics)
 ## Building data frame
 pred_error_hip_AC <- LOOCV_hip_AC_model %>% 
-  select(ID, speed, VO2.kg, VO2.kg_predicted) %>% 
-  mutate(abs_error_hip_AC = abs(VO2.kg - VO2.kg_predicted)) %>% 
+  select(ID, speed, kcal, kcal_predicted) %>% 
+  mutate(abs_error_hip_AC = abs(kcal - kcal_predicted)) %>% 
   select(ID, speed, abs_error_hip_AC)
 
 pred_error_hip_MAD <- LOOCV_hip_MAD_model %>% 
-  select(ID, speed, VO2.kg, VO2.kg_predicted) %>% 
-  mutate(abs_error_hip_MAD = abs(VO2.kg - VO2.kg_predicted)) %>% 
+  select(ID, speed, kcal, kcal_predicted) %>% 
+  mutate(abs_error_hip_MAD = abs(kcal - kcal_predicted)) %>% 
   select(ID, speed, abs_error_hip_MAD)
 
 pred_error_hip_ENMO <- LOOCV_hip_ENMO_model %>% 
-  select(ID, speed, VO2.kg, VO2.kg_predicted) %>% 
-  mutate(abs_error_hip_ENMO = abs(VO2.kg - VO2.kg_predicted)) %>% 
+  select(ID, speed, kcal, kcal_predicted) %>% 
+  mutate(abs_error_hip_ENMO = abs(kcal - kcal_predicted)) %>% 
   select(ID, speed, abs_error_hip_ENMO)
 
 hip_ANOVA_df <- pred_error_hip_AC %>%
@@ -481,18 +481,18 @@ summary(hip_ANOVA)
 # Back accelerometer (among accelerometer metrics)
 ## Building data frame
 pred_error_back_AC <- LOOCV_back_AC_model %>% 
-  select(ID, speed, VO2.kg, VO2.kg_predicted) %>% 
-  mutate(abs_error_back_AC = abs(VO2.kg - VO2.kg_predicted)) %>% 
+  select(ID, speed, kcal, kcal_predicted) %>% 
+  mutate(abs_error_back_AC = abs(kcal - kcal_predicted)) %>% 
   select(ID, speed, abs_error_back_AC)
 
 pred_error_back_MAD <- LOOCV_back_MAD_model %>% 
-  select(ID, speed, VO2.kg, VO2.kg_predicted) %>% 
-  mutate(abs_error_back_MAD = abs(VO2.kg - VO2.kg_predicted)) %>% 
+  select(ID, speed, kcal, kcal_predicted) %>% 
+  mutate(abs_error_back_MAD = abs(kcal - kcal_predicted)) %>% 
   select(ID, speed, abs_error_back_MAD)
 
 pred_error_back_ENMO <- LOOCV_back_ENMO_model %>% 
-  select(ID, speed, VO2.kg, VO2.kg_predicted) %>% 
-  mutate(abs_error_back_ENMO = abs(VO2.kg - VO2.kg_predicted)) %>% 
+  select(ID, speed, kcal, kcal_predicted) %>% 
+  mutate(abs_error_back_ENMO = abs(kcal - kcal_predicted)) %>% 
   select(ID, speed, abs_error_back_ENMO)
 
 back_ANOVA_df <- pred_error_back_AC %>%
