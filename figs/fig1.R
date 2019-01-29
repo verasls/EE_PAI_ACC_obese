@@ -13,17 +13,17 @@ LOOCV_back_MAD_model  <- read_csv("~/Dropbox/Projects/EE_PAI_ACC_obese/LOOCV_bac
 LOOCV_back_ENMO_model <- read_csv("~/Dropbox/Projects/EE_PAI_ACC_obese/LOOCV_back_ENMO.csv")
 
 # Hip AC ------------------------------------------------------------------
+LOOCV_hip_AC_model$diff <- LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted
+LOOCV_hip_AC_model$mean <- (LOOCV_hip_AC_model$kcal + LOOCV_hip_AC_model$kcal_predicted) / 2
 hip_AC_BA_plot <- ggplot(data = LOOCV_hip_AC_model) +
-  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted)) +
+  geom_point(mapping = aes(x = mean, y = diff)) +
+  geom_hline(yintercept = mean(LOOCV_hip_AC_model$diff)) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted) +
-      1.96 * sd(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted),
+    yintercept = mean(LOOCV_hip_AC_model$diff) + 1.96 * sd(LOOCV_hip_AC_model$diff),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted) -
-      1.96 * sd(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted),
+    yintercept = mean(LOOCV_hip_AC_model$diff) - 1.96 * sd(LOOCV_hip_AC_model$diff),
     linetype = "dotted"
   ) +
   scale_y_continuous(limits = c(-4, 4), expand = c(0, 0)) +
@@ -37,17 +37,17 @@ hip_AC_BA_plot <- ggplot(data = LOOCV_hip_AC_model) +
   )
 
 # Hip MAD -----------------------------------------------------------------
+LOOCV_hip_MAD_model$diff <- LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted
+LOOCV_hip_MAD_model$mean <- (LOOCV_hip_MAD_model$kcal + LOOCV_hip_MAD_model$kcal_predicted) / 2
 hip_MAD_BA_plot <- ggplot(data = LOOCV_hip_MAD_model) +
-  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted)) +
+  geom_point(mapping = aes(x = mean, y = diff)) +
+  geom_hline(yintercept = mean(LOOCV_hip_MAD_model$diff)) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted) +
-      1.96 * sd(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted),
+    yintercept = mean(LOOCV_hip_MAD_model$diff) + 1.96 * sd(LOOCV_hip_MAD_model$diff),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted) -
-      1.96 * sd(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted),
+    yintercept = mean(LOOCV_hip_MAD_model$diff) - 1.96 * sd(LOOCV_hip_MAD_model$diff),
     linetype = "dotted"
   ) +
   scale_y_continuous(limits = c(-4, 4), expand = c(0, 0)) +
@@ -61,17 +61,17 @@ hip_MAD_BA_plot <- ggplot(data = LOOCV_hip_MAD_model) +
   )
 
 # Hip ENMO ----------------------------------------------------------------
+LOOCV_hip_ENMO_model$diff <- LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted
+LOOCV_hip_ENMO_model$mean <- (LOOCV_hip_ENMO_model$kcal + LOOCV_hip_ENMO_model$kcal_predicted) / 2
 hip_ENMO_BA_plot <- ggplot(data = LOOCV_hip_ENMO_model) +
-  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted)) +
+  geom_point(mapping = aes(x = mean, y = diff)) +
+  geom_hline(yintercept = mean(LOOCV_hip_ENMO_model$diff)) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted) +
-      1.96 * sd(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted),
+    yintercept = mean(LOOCV_hip_ENMO_model$diff) + 1.96 * sd(LOOCV_hip_ENMO_model$diff),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted) -
-      1.96 * sd(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted),
+    yintercept = mean(LOOCV_hip_ENMO_model$diff) - 1.96 * sd(LOOCV_hip_ENMO_model$diff),
     linetype = "dotted"
   ) +
   scale_y_continuous(limits = c(-4, 4), expand = c(0, 0)) +
@@ -85,17 +85,17 @@ hip_ENMO_BA_plot <- ggplot(data = LOOCV_hip_ENMO_model) +
   )
 
 # Back AC -----------------------------------------------------------------
+LOOCV_back_AC_model$diff <- LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted
+LOOCV_back_AC_model$mean <- (LOOCV_back_AC_model$kcal + LOOCV_back_AC_model$kcal_predicted) / 2
 back_AC_BA_plot <- ggplot(data = LOOCV_back_AC_model) +
-  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted)) +
+  geom_point(mapping = aes(x = mean, y = diff)) +
+  geom_hline(yintercept = mean(LOOCV_back_AC_model$diff)) +
   geom_hline(
-    yintercept = mean(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted) +
-      1.96 * sd(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted),
+    yintercept = mean(LOOCV_back_AC_model$diff) + 1.96 * sd(LOOCV_back_AC_model$diff),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted) -
-      1.96 * sd(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted),
+    yintercept = mean(LOOCV_back_AC_model$diff) - 1.96 * sd(LOOCV_back_AC_model$diff),
     linetype = "dotted"
   ) +
   scale_y_continuous(limits = c(-4, 4), expand = c(0, 0)) +
@@ -109,17 +109,17 @@ back_AC_BA_plot <- ggplot(data = LOOCV_back_AC_model) +
   )
 
 # Back MAD ----------------------------------------------------------------
+LOOCV_back_MAD_model$diff <- LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted
+LOOCV_back_MAD_model$mean <- (LOOCV_back_MAD_model$kcal + LOOCV_back_MAD_model$kcal_predicted) / 2
 back_MAD_BA_plot <- ggplot(data = LOOCV_back_MAD_model) +
-  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted)) +
+  geom_point(mapping = aes(x = mean, y = diff)) +
+  geom_hline(yintercept = mean(LOOCV_back_MAD_model$diff)) +
   geom_hline(
-    yintercept = mean(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted) +
-      1.96 * sd(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted),
+    yintercept = mean(LOOCV_back_MAD_model$diff) + 1.96 * sd(LOOCV_back_MAD_model$diff),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted) -
-      1.96 * sd(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted),
+    yintercept = mean(LOOCV_back_MAD_model$diff) - 1.96 * sd(LOOCV_back_MAD_model$diff),
     linetype = "dotted"
   ) +
   scale_y_continuous(limits = c(-4, 4), expand = c(0, 0)) +
@@ -133,18 +133,19 @@ back_MAD_BA_plot <- ggplot(data = LOOCV_back_MAD_model) +
   )
 
 # Back ENMO ---------------------------------------------------------------
+LOOCV_back_ENMO_model$diff <- LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted
+LOOCV_back_ENMO_model$mean <- (LOOCV_back_ENMO_model$kcal + LOOCV_back_ENMO_model$kcal_predicted) / 2
 back_ENMO_BA_plot <- ggplot(data = LOOCV_back_ENMO_model) +
-  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted)) +
+  geom_point(mapping = aes(x = mean, y = diff)) +
+  geom_hline(yintercept = mean(LOOCV_back_ENMO_model$diff)) +
   geom_hline(
-    yintercept = mean(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted) +
-      1.96 * sd(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted),
+    yintercept = mean(LOOCV_back_ENMO_model$diff) + 1.96 * sd(LOOCV_back_ENMO_model$diff),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted) -
-      1.96 * sd(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted),
-    linetype = "dotted") +
+    yintercept = mean(LOOCV_back_ENMO_model$diff) - 1.96 * sd(LOOCV_back_ENMO_model$diff),
+    linetype = "dotted"
+  ) +
   scale_y_continuous(limits = c(-4, 4), expand = c(0, 0)) +
   scale_x_continuous(limits = c(0, 15), expand = c(0, 0)) +
   theme_classic() +
