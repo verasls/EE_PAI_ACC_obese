@@ -1,27 +1,28 @@
 # Load packages and functions ---------------------------------------------
 
+library(here)
 library(tidyverse)
 library(nlme)
 library(piecewiseSEM)
 library(pROC)
 library(irr)
 library(pgirmess)
-source("R/get_MET.R")
-source("R/get_PAI_categories.R")
-source("R/get_HR_res.R")
-source("R/get_kcal.R")
-source("R/cross_validate_mixed_model.R")
-source("R/cross_validate_ROC_curves.R")
-source("R/accuracy_indices.R")
-source("R/percent_agreement.R")
+source(here("R", "get_MET.R"))
+source(here("R", "get_PAI_categories.R"))
+source(here("R", "get_HR_res.R"))
+source(here("R", "get_kcal.R"))
+source(here("R", "cross_validate_mixed_model.R"))
+source(here("R", "cross_validate_ROC_curves.R"))
+source(here("R", "accuracy_indices.R"))
+source(here("R", "percent_agreement.R"))
 
 # 1. Prepare files --------------------------------------------------------
 
-cardio       <- read_csv("data/cardio_data.csv")
-hip_pri_acc  <- read_csv("data/hip_pri_acc.csv")
-hip_sec_acc  <- read_csv("data/hip_sec_acc.csv")
-back_pri_acc <- read_csv("data/back_pri_acc.csv")
-back_sec_acc <- read_csv("data/back_sec_acc.csv")
+cardio       <- read_csv(here("data", "cardio_data.csv"))
+hip_pri_acc  <- read_csv(here("data", "hip_pri_acc.csv"))
+hip_sec_acc  <- read_csv(here("data", "hip_sec_acc.csv"))
+back_pri_acc <- read_csv(here("data", "back_pri_acc.csv"))
+back_sec_acc <- read_csv(here("data", "back_sec_acc.csv"))
 
 # Compute MET values
 cardio <- do.call(rbind, (lapply(unique(cardio$ID), get_MET, df = cardio)))
@@ -29,7 +30,7 @@ cardio <- do.call(rbind, (lapply(unique(cardio$ID), get_MET, df = cardio)))
 cardio <- get_PAI_categories(cardio)
 # Compute percent HR reserve values
 cardio <- do.call(rbind, (lapply(unique(cardio$ID), get_HR_res, df = cardio)))
-# Compute Kcal values
+# Compute kcal values
 cardio <- do.call(rbind, (lapply(unique(cardio$ID), get_kcal, df = cardio)))
 
 # Merge related data frames
@@ -37,17 +38,19 @@ hip <- hip_pri_acc %>%
   select(-c(MAD, ENMO)) %>% 
   full_join(hip_sec_acc, by = c("ID", "speed")) %>% 
   left_join(cardio, by = c("ID", "speed")) %>% 
-  select(-c(BF, V.E, V.O2, Evaluation, Date))
+  select(-c(BF, V.E, V.O2, Evaluation, Date)) %>% 
+  select(ID, speed, AC, MAD, ENMO, kcal, VO2.kg, MET, HR, percent_HR_res, everything())
 
 back <- back_pri_acc %>% 
   select(-c(MAD, ENMO)) %>% 
   full_join(back_sec_acc, by = c("ID", "speed")) %>% 
   left_join(cardio, by = c("ID", "speed")) %>% 
-  select(-c(BF, V.E, V.O2, Evaluation, Date))
+  select(-c(BF, V.E, V.O2, Evaluation, Date)) %>% 
+  select(ID, speed, AC, MAD, ENMO, kcal, VO2.kg, MET, HR, percent_HR_res, everything())
 
 # 2. Sample descriptives --------------------------------------------------
 
-samp_desc <- read_csv("data/sample_descriptives_data.csv")
+samp_desc <- read_csv(here("data", "sample_descriptives_data.csv"))
 descriptives <- summarise(
   .data = samp_desc,
   age_mean    = round(mean(age), digits = 1),
@@ -266,95 +269,122 @@ LOOCV_back_ENMO_ROC <- do.call(rbind, (lapply(unique(back$ID),
 
 # Hip accelerometer
 ## AC
+LOOCV_hip_AC_model$diff <- LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted
+LOOCV_hip_AC_model$mean <- (LOOCV_hip_AC_model$kcal + LOOCV_hip_AC_model$kcal_predicted) / 2
 hip_AC_BA_plot <- ggplot(data = LOOCV_hip_AC_model) +
-  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted)) +
+  geom_point(mapping = aes(x = mean, y = diff)) +
+  geom_hline(yintercept = mean(LOOCV_hip_AC_model$diff)) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted) +
-    1.96 * sd(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted),
+    yintercept = mean(LOOCV_hip_AC_model$diff) + 1.96 * sd(LOOCV_hip_AC_model$diff),
     linetype = "dotted"
     ) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted) -
-      1.96 * sd(LOOCV_hip_AC_model$kcal - LOOCV_hip_AC_model$kcal_predicted),
+    yintercept = mean(LOOCV_hip_AC_model$diff) - 1.96 * sd(LOOCV_hip_AC_model$diff),
     linetype = "dotted"
   )
 
 ## MAD
+LOOCV_hip_MAD_model$diff <- LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted
+LOOCV_hip_MAD_model$mean <- (LOOCV_hip_MAD_model$kcal + LOOCV_hip_MAD_model$kcal_predicted) / 2
 hip_MAD_BA_plot <- ggplot(data = LOOCV_hip_MAD_model) +
-  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted)) +
+  geom_point(mapping = aes(x = mean, y = diff)) +
+  geom_hline(yintercept = mean(LOOCV_hip_MAD_model$diff)) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted) +
-      1.96 * sd(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted),
+    yintercept = mean(LOOCV_hip_MAD_model$diff) + 1.96 * sd(LOOCV_hip_MAD_model$diff),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted) -
-      1.96 * sd(LOOCV_hip_MAD_model$kcal - LOOCV_hip_MAD_model$kcal_predicted),
+    yintercept = mean(LOOCV_hip_MAD_model$diff) - 1.96 * sd(LOOCV_hip_MAD_model$diff),
     linetype = "dotted"
   )
 
 ## ENMO
+LOOCV_hip_ENMO_model$diff <- LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted
+LOOCV_hip_ENMO_model$mean <- (LOOCV_hip_ENMO_model$kcal + LOOCV_hip_ENMO_model$kcal_predicted) / 2
 hip_ENMO_BA_plot <- ggplot(data = LOOCV_hip_ENMO_model) +
-  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted)) +
+  geom_point(mapping = aes(x = mean, y = diff)) +
+  geom_hline(yintercept = mean(LOOCV_hip_ENMO_model$diff)) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted) +
-      1.96 * sd(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted),
+    yintercept = mean(LOOCV_hip_ENMO_model$diff) + 1.96 * sd(LOOCV_hip_ENMO_model$diff),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted) -
-      1.96 * sd(LOOCV_hip_ENMO_model$kcal - LOOCV_hip_ENMO_model$kcal_predicted),
+    yintercept = mean(LOOCV_hip_ENMO_model$diff) - 1.96 * sd(LOOCV_hip_ENMO_model$diff),
     linetype = "dotted"
   )
 
 # Back accelerometer
 ## AC
+LOOCV_back_AC_model$diff <- LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted
+LOOCV_back_AC_model$mean <- (LOOCV_back_AC_model$kcal + LOOCV_back_AC_model$kcal_predicted) / 2
 back_AC_BA_plot <- ggplot(data = LOOCV_back_AC_model) +
-  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted)) +
+  geom_point(mapping = aes(x = mean, y = diff)) +
+  geom_hline(yintercept = mean(LOOCV_back_AC_model$diff)) +
   geom_hline(
-    yintercept = mean(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted) +
-      1.96 * sd(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted),
+    yintercept = mean(LOOCV_back_AC_model$diff) + 1.96 * sd(LOOCV_back_AC_model$diff),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted) -
-      1.96 * sd(LOOCV_back_AC_model$kcal - LOOCV_back_AC_model$kcal_predicted),
+    yintercept = mean(LOOCV_back_AC_model$diff) - 1.96 * sd(LOOCV_back_AC_model$diff),
     linetype = "dotted"
   )
 
 ## MAD
+LOOCV_back_MAD_model$diff <- LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted
+LOOCV_back_MAD_model$mean <- (LOOCV_back_MAD_model$kcal + LOOCV_back_MAD_model$kcal_predicted) / 2
 back_MAD_BA_plot <- ggplot(data = LOOCV_back_MAD_model) +
-  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted)) +
+  geom_point(mapping = aes(x = mean, y = diff)) +
+  geom_hline(yintercept = mean(LOOCV_back_MAD_model$diff)) +
   geom_hline(
-    yintercept = mean(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted) +
-      1.96 * sd(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted),
+    yintercept = mean(LOOCV_back_MAD_model$diff) + 1.96 * sd(LOOCV_back_MAD_model$diff),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted) -
-      1.96 * sd(LOOCV_back_MAD_model$kcal - LOOCV_back_MAD_model$kcal_predicted),
+    yintercept = mean(LOOCV_back_MAD_model$diff) - 1.96 * sd(LOOCV_back_MAD_model$diff),
     linetype = "dotted"
   )
 
 ## ENMO
+LOOCV_back_ENMO_model$diff <- LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted
+LOOCV_back_ENMO_model$mean <- (LOOCV_back_ENMO_model$kcal + LOOCV_back_ENMO_model$kcal_predicted) / 2
 back_ENMO_BA_plot <- ggplot(data = LOOCV_back_ENMO_model) +
-  geom_point(mapping = aes(x = ((kcal + kcal_predicted) / 2), y = kcal - kcal_predicted)) +
-  geom_hline(yintercept = mean(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted)) +
+  geom_point(mapping = aes(x = mean, y = diff)) +
+  geom_hline(yintercept = mean(LOOCV_back_ENMO_model$diff)) +
   geom_hline(
-    yintercept = mean(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted) +
-      1.96 * sd(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted),
+    yintercept = mean(LOOCV_back_ENMO_model$diff) + 1.96 * sd(LOOCV_back_ENMO_model$diff),
     linetype = "dotted"
   ) +
   geom_hline(
-    yintercept = mean(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted) -
-      1.96 * sd(LOOCV_back_ENMO_model$kcal - LOOCV_back_ENMO_model$kcal_predicted),
+    yintercept = mean(LOOCV_back_ENMO_model$diff) - 1.96 * sd(LOOCV_back_ENMO_model$diff),
     linetype = "dotted"
   )
+
+# Linear regressions
+# Hip accelerometer
+## AC
+hip_AC_BA_plot_LR <- lm(diff ~ mean, data = LOOCV_hip_AC_model)
+summary(hip_AC_BA_plot_LR)
+
+## MAD
+hip_MAD_BA_plot_LR <- lm(diff ~ mean, data = LOOCV_hip_MAD_model)
+summary(hip_MAD_BA_plot_LR)
+
+## ENMO
+hip_ENMO_BA_plot_LR <- lm(diff ~ mean, data = LOOCV_hip_ENMO_model)
+summary(hip_ENMO_BA_plot_LR)
+
+# Back accelerometer
+## AC
+back_AC_BA_plot_LR <- lm(diff ~ mean, data = LOOCV_back_AC_model)
+summary(back_AC_BA_plot_LR)
+
+## MAD
+back_MAD_BA_plot_LR <- lm(diff ~ mean, data = LOOCV_back_MAD_model)
+summary(back_MAD_BA_plot_LR)
+
+## ENMO
+back_ENMO_BA_plot_LR <- lm(diff ~ mean, data = LOOCV_back_ENMO_model)
+summary(back_ENMO_BA_plot_LR)
 
 # ** 3.3.3 Indices of accuracy --------------------------------------------
 
