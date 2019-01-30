@@ -125,6 +125,8 @@ sex <- table(samp_desc$sex)
 
 Linear mixed models (LMM) [[@fieldR; @bates15]](#refs) were applied to predict kilocalories, that was used as the criterion measure of energy expenditure (EE). Distinct LMMs were developed with data from hip and back accelerometer placement using the `lme` function of the `nlme` [package](https://cran.r-project.org/web/packages/nlme/nlme.pdf). Covariance structure used was an autoregressive process of order 1 (`correlation = corAR1`) and maximum likelihood method was used for estimating parameters (`method = "ML"`). AC, MAD, ENMO, sex, age, body mass and BMI were tested as fixed effects, but only weight and the accelerometer metrics have shown to be significant predictors (*e.g.:* `fixed = kcal ~ AC + I(AC^2) + Weight`). Although random slopes have been tested, only the inclusion of random intercept has showed model improvement (`random = ~ 1 | ID`). Linear, quadratic and cubic slopes were also tested, whereas the last one did not contribute significantly to the models. Final models were chosen according to -2 log-likelihood statistics. Traditional coefficient of determination (R^2^) was represented by conditional R^2^ [[@naka13]](#refs) computed with `rsquared` function of the `piecewiseSEM` [package](http://jslefche.github.io/piecewiseSEM/articles/piecewiseSEM.html), that estimates the variance explained by the whole model [[@r216]](#refs).
 
+Code to build the LMMs, as well as their summary and R^2^, can be found below.
+
 ```{r LMM}
 # Hip accelerometer
 ## AC
@@ -137,7 +139,8 @@ hip_AC_model <- lme(
   na.action = na.omit
 )
 r2_hip_AC_model <- rsquared(hip_AC_model)
-
+summary(hip_AC_model)
+r2_hip_AC_model
 ## MAD
 hip_MAD_model <- lme(
   fixed = kcal ~ MAD + I(MAD^2) + Weight,
@@ -148,7 +151,8 @@ hip_MAD_model <- lme(
   na.action = na.omit
 )
 r2_hip_MAD_model <- rsquared(hip_MAD_model)
-
+summary(hip_MAD_model)
+r2_hip_MAD_model
 ## ENMO
 hip_ENMO_model <- lme(
   fixed = kcal ~ ENMO + I(ENMO^2) + Weight,
@@ -159,7 +163,8 @@ hip_ENMO_model <- lme(
   na.action = na.omit
 )
 r2_hip_ENMO_model <- rsquared(hip_ENMO_model)
-
+summary(hip_ENMO_model)
+r2_hip_ENMO_model
 # Back accelerometer
 ## AC
 back_AC_model <- lme(
@@ -171,7 +176,8 @@ back_AC_model <- lme(
   na.action = na.omit
 )
 r2_back_AC_model <- rsquared(back_AC_model)
-
+summary(back_AC_model)
+r2_back_AC_model
 ## MAD
 back_MAD_model <- lme(
   fixed = kcal ~ MAD + I(MAD^2) + Weight,
@@ -182,7 +188,8 @@ back_MAD_model <- lme(
   na.action = na.omit
 )
 r2_back_MAD_model <- rsquared(back_MAD_model)
-
+summary(back_MAD_model)
+r2_back_MAD_model
 ## ENMO
 back_ENMO_model <- lme(
   fixed = kcal ~ ENMO + I(ENMO^2) + Weight,
@@ -193,6 +200,8 @@ back_ENMO_model <- lme(
   na.action = na.omit
 )
 r2_back_ENMO_model <- rsquared(back_ENMO_model)
+summary(back_ENMO_model)
+r2_back_ENMO_model
 ```
 
 ```{r R2_range, echo=FALSE}
@@ -200,7 +209,7 @@ minR2 <- myround(min(c(r2_hip_AC_model[[6]], r2_hip_MAD_model[[6]], r2_hip_ENMO_
 maxR2 <- myround(max(c(r2_hip_AC_model[[6]], r2_hip_MAD_model[[6]], r2_hip_ENMO_model[[6]], r2_back_AC_model[[6]], r2_back_MAD_model[[6]], r2_back_ENMO_model[[6]])), digits = 2)
 ```
 
-Conditional R^2^ values ranged from `r minR2`to `r maxR2`.
+Conditional R^2^ values ranged from `r minR2` to `r maxR2`.
 
 # Receiver operating characteristic curves
 
@@ -257,6 +266,49 @@ cp_back_ENMO_ROC_SED <- coords(back_ENMO_ROC_SED, x = "best", best.method = "clo
 cp_back_ENMO_ROC_MOD <- coords(back_ENMO_ROC_MOD, x = "best", best.method = "closest.topleft")
 cp_back_ENMO_ROC_VIG <- coords(back_ENMO_ROC_VIG, x = "best", best.method = "closest.topleft")
 ```
+
+Summary statistics for all ROC curves can be found in table below.
+
+```{r ROC_summary}
+ROC_summary <- data.frame(
+  acc_placement = c(rep("Hip", 9), rep("Back", 9)),
+  acc_metric    = rep(c(rep("AC", 3), rep("MAD", 3), rep("ENMO", 3)), 2),
+  AUC           = c(
+    myround(auc(hip_AC_ROC_SED)[[1]], 2), myround(auc(hip_AC_ROC_MOD)[[1]], 2), myround(auc(hip_AC_ROC_VIG)[[1]], 2),
+    myround(auc(hip_MAD_ROC_SED)[[1]], 2), myround(auc(hip_MAD_ROC_MOD)[[1]], 2), myround(auc(hip_MAD_ROC_VIG)[[1]], 2),
+    myround(auc(hip_ENMO_ROC_SED)[[1]], 2), myround(auc(hip_ENMO_ROC_MOD)[[1]], 2), myround(auc(hip_ENMO_ROC_VIG)[[1]], 2),
+    myround(auc(back_AC_ROC_SED)[[1]], 2), myround(auc(back_AC_ROC_MOD)[[1]], 2), myround(auc(back_AC_ROC_VIG)[[1]], 2),
+    myround(auc(back_MAD_ROC_SED)[[1]], 2), myround(auc(back_MAD_ROC_MOD)[[1]], 2), myround(auc(back_MAD_ROC_VIG)[[1]], 2),
+    myround(auc(back_ENMO_ROC_SED)[[1]], 2), myround(auc(back_ENMO_ROC_MOD)[[1]], 2), myround(auc(back_ENMO_ROC_VIG)[[1]], 2)
+  ),
+  threshold     = c(
+    round(cp_hip_AC_ROC_SED[[1]], 0), round(cp_hip_AC_ROC_MOD[[1]], 0), round(cp_hip_AC_ROC_VIG[[1]], 0),
+    round(cp_hip_MAD_ROC_SED[[1]], 0), round(cp_hip_MAD_ROC_MOD[[1]], 0), round(cp_hip_MAD_ROC_VIG[[1]], 0),
+    round(cp_hip_ENMO_ROC_SED[[1]], 0), round(cp_hip_ENMO_ROC_MOD[[1]], 0), round(cp_hip_ENMO_ROC_VIG[[1]], 0),
+    round(cp_back_AC_ROC_SED[[1]], 0), round(cp_back_AC_ROC_MOD[[1]], 0), round(cp_back_AC_ROC_VIG[[1]], 0),
+    round(cp_back_MAD_ROC_SED[[1]], 0), round(cp_back_MAD_ROC_MOD[[1]], 0), round(cp_back_MAD_ROC_VIG[[1]], 0),
+    round(cp_back_ENMO_ROC_SED[[1]], 0), round(cp_back_ENMO_ROC_MOD[[1]], 0), round(cp_back_ENMO_ROC_VIG[[1]], 0)
+  ),
+  specificity   = c(
+    myround(cp_hip_AC_ROC_SED[[2]], 2), myround(cp_hip_AC_ROC_MOD[[2]], 2), myround(cp_hip_AC_ROC_VIG[[2]], 2),
+    myround(cp_hip_MAD_ROC_SED[[2]], 2), myround(cp_hip_MAD_ROC_MOD[[2]], 2), myround(cp_hip_MAD_ROC_VIG[[2]], 2),
+    myround(cp_hip_ENMO_ROC_SED[[2]], 2), myround(cp_hip_ENMO_ROC_MOD[[2]], 2), myround(cp_hip_ENMO_ROC_VIG[[2]], 2),
+    myround(cp_back_AC_ROC_SED[[2]], 2), myround(cp_back_AC_ROC_MOD[[2]], 2), myround(cp_back_AC_ROC_VIG[[2]], 2),
+    myround(cp_back_MAD_ROC_SED[[2]], 2), myround(cp_back_MAD_ROC_MOD[[2]], 2), myround(cp_back_MAD_ROC_VIG[[2]], 2),
+    myround(cp_back_ENMO_ROC_SED[[2]], 2), myround(cp_back_ENMO_ROC_MOD[[2]], 2), myround(cp_back_ENMO_ROC_VIG[[2]], 2)
+  ),
+  sensitivity   = c(
+    myround(cp_hip_AC_ROC_SED[[3]], 2), myround(cp_hip_AC_ROC_MOD[[3]], 2), myround(cp_hip_AC_ROC_VIG[[3]], 2),
+    myround(cp_hip_MAD_ROC_SED[[3]], 2), myround(cp_hip_MAD_ROC_MOD[[3]], 2), myround(cp_hip_MAD_ROC_VIG[[3]], 2),
+    myround(cp_hip_ENMO_ROC_SED[[3]], 2), myround(cp_hip_ENMO_ROC_MOD[[3]], 2), myround(cp_hip_ENMO_ROC_VIG[[3]], 2),
+    myround(cp_back_AC_ROC_SED[[3]], 2), myround(cp_back_AC_ROC_MOD[[3]], 2), myround(cp_back_AC_ROC_VIG[[3]], 2),
+    myround(cp_back_MAD_ROC_SED[[3]], 2), myround(cp_back_MAD_ROC_MOD[[3]], 2), myround(cp_back_MAD_ROC_VIG[[3]], 2),
+    myround(cp_back_ENMO_ROC_SED[[3]], 2), myround(cp_back_ENMO_ROC_MOD[[3]], 2), myround(cp_back_ENMO_ROC_VIG[[3]], 2)
+  )
+)
+kable(ROC_summary)
+```
+
 
 # Validation analysis
 
