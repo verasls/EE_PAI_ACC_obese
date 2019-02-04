@@ -60,7 +60,7 @@ back_sec_acc <- read_csv(here("data", "back_sec_acc.csv"))
 
 Then, some computations needed to be made in the `cardio` data frame to obtain other variables that would be necessary in subsequent data analysis. All these computations were done using user-defined functions.
 
-`get_kcal` function **(insert link)** computes EE (in kilocalories) with Weir's equation, based on VO~2~ and VCO~2~ [[@weir49]](#refs). This variable will be used to develop regression equations in the [**Linear mixed models**](#LMM) section. `get_MET` function **(insert link)** computes metabolic equivalents (MET) based on the sitting rest period VO~2~. `get_PAI_categories` function **(insert link)** computes SA and PAI categories based on MET values. Activities were classified as: ≤ 1.5 MET – SA; 1.6–2.9 MET – light physical activity (LPA);  3.0–6.0 MET – moderate physical activity (MPA); and >5.5 MET – vigorous physical activity (VPA) [[@garb11]](#refs). These variables were also recoded to create ordinal variables, according to the following identification: 1 – SA, 2 – LPA, 3 – MPA and 4 – VPA. PAI categories variables will be used to develop cut-points to classify SA and PAI in the [**Receiver operating characteristic curves**](#ROC) section.
+`get_kcal` [function](https://github.com/verasls/EE_PAI_ACC_obese/blob/master/R/get_kcal.R) computes EE (in kilocalories) with Weir's equation, based on VO~2~ and VCO~2~ [[@weir49]](#refs). This variable will be used to develop regression equations in the [**Linear mixed models**](#LMM) section. `get_MET` [function](https://github.com/verasls/EE_PAI_ACC_obese/blob/master/R/get_MET.R) computes metabolic equivalents (MET) based on the sitting rest period VO~2~. `get_PAI_categories` [function](https://github.com/verasls/EE_PAI_ACC_obese/blob/master/R/get_PAI_categories.R) computes SA and PAI categories based on MET values. Activities were classified as: ≤ 1.5 MET – SA; 1.6–2.9 MET – light physical activity (LPA);  3.0–6.0 MET – moderate physical activity (MPA); and >5.5 MET – vigorous physical activity (VPA) [[@garb11]](#refs). These variables were also recoded to create ordinal variables, according to the following identification: 1 – SA, 2 – LPA, 3 – MPA and 4 – VPA. PAI categories variables will be used to develop cut-points to classify SA and PAI in the [**Receiver operating characteristic curves**](#ROC) section.
 
 ```{r computations}
 # Compute kcal values
@@ -203,7 +203,7 @@ Conditional R^2^ values ranged from `r minR2` to `r maxR2`.
 
 # Receiver operating characteristic curves {#ROC}
 
-Cut-points that identify SA and PAI created from AC, MAD and ENMO were obtained applying receiver operating characteristic curves (ROC) [[@faw06; @jago07]](#refs) for both hip and back accelerometer placement data. The indices used to summarize the cut-points were sensitivity (proportion of true positives that are correctly identified), specificity (proportion of false positive that are correctly identified) and the area under the curve. RMR were not used in the ROC analysis. LPA boundaries were provided with SA and MPA  cut-points. SA and PAI variables were created with `get_PAI_categories` function **insert link** as described [here](#prep_data).ROC curves were created using `roc` function of the `pROC` [package](https://cran.r-project.org/web/packages/pROC/pROC.pdf). Optimal cut-points were chosen using the closest-to-(0,1) criterion with `coords` function, also of the `pROC` [package](https://cran.r-project.org/web/packages/pROC/pROC.pdf) (`coords(roc, x = "best", best.method = "closest.topleft")`) [[@perk06]](#refs).
+Cut-points that identify SA and PAI created from AC, MAD and ENMO were obtained applying receiver operating characteristic curves (ROC) [[@faw06; @jago07]](#refs) for both hip and back accelerometer placement data. The indices used to summarize the cut-points were sensitivity (proportion of true positives that are correctly identified), specificity (proportion of false positive that are correctly identified) and the area under the curve. RMR were not used in the ROC analysis. LPA boundaries were provided with SA and MPA  cut-points. SA and PAI variables were created with `get_PAI_categories` [function](https://github.com/verasls/EE_PAI_ACC_obese/blob/master/R/get_PAI_categories.R) as described [here](#prep_data).ROC curves were created using `roc` function of the `pROC` [package](https://cran.r-project.org/web/packages/pROC/pROC.pdf). Optimal cut-points were chosen using the closest-to-(0,1) criterion with `coords` function, also of the `pROC` [package](https://cran.r-project.org/web/packages/pROC/pROC.pdf) (`coords(roc, x = "best", best.method = "closest.topleft")`) [[@perk06]](#refs).
 
 ```{r ROC_curves}
 # Hip accelerometer
@@ -305,7 +305,7 @@ kable(ROC_summary, align = c("l", "l", "l", "c", "c", "c", "c"), col.names = c("
 
 The validity of equations and cut-points developed were posteriorly analyzed through leave-one-out cross-validation (LOOCV) method [[@staud12]](#refs). Hence, each participant’s data was separated into a testing dataset (one at a time) with the remaining data being in the training dataset. New LMM and ROC curves, with the same structure as determined for the entire sample, were developed using the training dataset to predict kilocalories and identify SA or PAI for the only participant in the testing dataset. This process was repeated for all participants (`r nrow(samp_desc)` times).  
 
-LOOCV of the LMM was done with the `cross_validate_mixed_model` function **insert link** and is shown below.
+LOOCV of the LMM was done with the `cross_validate_mixed_model` [function](https://github.com/verasls/EE_PAI_ACC_obese/blob/master/R/cross_validate_mixed_model.R) and is shown below.
 
 ```{r LMM_LOOCV}
 # Leave-one-out cross-validation
@@ -349,7 +349,7 @@ acc_metric <- "ENMO"
 LOOCV_back_ENMO_model <- do.call(rbind, (lapply(unique(back$ID), cross_validate_mixed_model, df = back)))
 ```
 
-LOOCV of the ROC curves was done with the `cross_validate_ROC_curves` function **insert link** and is shown below.
+LOOCV of the ROC curves was done with the `cross_validate_ROC_curves` [function](https://github.com/verasls/EE_PAI_ACC_obese/blob/master/R/cross_validate_ROC_curves.R) and is shown below.
 
 ```{r ROC_LOOCV}
 # Leave-one-out cross-validation
@@ -401,7 +401,7 @@ source(here("figs", "fig1.R"))
 BA_plot_grid
 ```
 
-Code to generate these plots can be seen here **insert link**.
+Code to generate these plots can be seen [here](https://github.com/verasls/EE_PAI_ACC_obese/blob/master/figs/fig1.R).
 
 <br>
 
@@ -438,7 +438,7 @@ summary(back_ENMO_BA_plot_LR)
 
 ## Indices of accuracy
 
-The accuracy of predicted EE was assessed by mean absolute error (MAE), mean absolute percent error (MAPE), and root mean square error (RMSE). These indices were computed with the `accuracy_indices` function **insert link**.
+The accuracy of predicted EE was assessed by mean absolute error (MAE), mean absolute percent error (MAPE), and root mean square error (RMSE). These indices were computed with the `accuracy_indices` [function](https://github.com/verasls/EE_PAI_ACC_obese/blob/master/R/accuracy_indices.R).
 
 ```{r indices_of_accuracy}
 # Hip accelerometer
@@ -490,7 +490,7 @@ All conditions showed a MAE near `r myround(mean(accuracy$MAE), digits = 1)` kca
 
 Kappa statistic (κ) was used to measure the classification agreement of SA and PAI obtained from indirect calorimetry and those obtained from cut-points [[@watson10]](#refs). Individual classification agreement analyses for SA, LPA, MPA and VPA were done with unweighted Kappa method [[@sim05]](#refs). Because the whole classification included four ordinal categories, the disagreement magnitude among them (e.g., misclassified by two or more categories instead of one) was also analyzed in a global classification agreement utilizing a quadratic weighted Kappa method [[@sim05]](#refs). 
 
-To perform unweighted Kappa analyses, METs obtained from indirect calorimetry and values of AC, MAD, ENMO included in cut-points of SA, LPA, MPA and VPA were recoded to create binary variables (0 or 1), wherein 1 was the activity to be identified and 0 the others. For quadratic weighted Kappa analyses, METs obtained from indirect calorimetry and values of AC, MAD and ENMO included in cut-points for SA, LPA, MPA and VPA were recoded to create ordinal variables, according to the following identification: 1 – SA, 2 – LPA, 3 – MPA and 4 – VPA. These variables were created with the `get_PAI_categories` function **insert link**, as described [here](#prep_data).
+To perform unweighted Kappa analyses, METs obtained from indirect calorimetry and values of AC, MAD, ENMO included in cut-points of SA, LPA, MPA and VPA were recoded to create binary variables (0 or 1), wherein 1 was the activity to be identified and 0 the others. For quadratic weighted Kappa analyses, METs obtained from indirect calorimetry and values of AC, MAD and ENMO included in cut-points for SA, LPA, MPA and VPA were recoded to create ordinal variables, according to the following identification: 1 – SA, 2 – LPA, 3 – MPA and 4 – VPA. These variables were created with the `get_PAI_categories` [function](https://github.com/verasls/EE_PAI_ACC_obese/blob/master/R/get_PAI_categories.R), as described [here](#prep_data).
 
 All Kappa statistic analyses were conducted with `kappa2` function of the `irr` [package](https://cran.r-project.org/web/packages/irr/irr.pdf). For the quadratic weighted Kappa, *"weight"* argument was set as *"squared"* (`weight = "squared"`).
  
@@ -570,7 +570,7 @@ kable(kappa_back, col.names = c("Accelerometer Metric", "Intensity Category", "K
 
 ## Percent agreement
 
-Percent agreement from global classification was also calculated. Hence, SA, LPA, MPA and VPA classification created from cut-points in each accelerometer metric from hip and back placement were recoded to create binary variables (0 or 1). The activity correctly identified was coded as 1 and the opposite as 0, taking as reference the classification obtained by indirect calorimetry. Percent agreement was calculated by `percent_agreement` function **insert link** through the sum of activities correctly identified divided by the sum of all activities and then multiplied by 100.
+Percent agreement from global classification was also calculated. Hence, SA, LPA, MPA and VPA classification created from cut-points in each accelerometer metric from hip and back placement were recoded to create binary variables (0 or 1). The activity correctly identified was coded as 1 and the opposite as 0, taking as reference the classification obtained by indirect calorimetry. Percent agreement was calculated by `percent_agreement` [function](https://github.com/verasls/EE_PAI_ACC_obese/blob/master/R/percent_agreement.R) through the sum of activities correctly identified divided by the sum of all activities and then multiplied by 100.
 
 Table below shows percent agreement for all accelerometer placements and metrics. 
 
