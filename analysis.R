@@ -1,6 +1,7 @@
 # Load packages and functions ---------------------------------------------
 
 library(here)
+library(broman)
 library(tidyverse)
 library(nlme)
 library(piecewiseSEM)
@@ -18,53 +19,94 @@ source(here("R", "percent_agreement.R"))
 
 # 1. Prepare files --------------------------------------------------------
 
-cardio       <- read_csv(here("data", "cardio_data.csv"))
+cardio       <- read_csv(here("data", "cardio_data.csv")) %>% 
+  select(ID, speed, Sex, Age, Body_mass, BMI, V.O2, V.CO2, VO2.kg)
 hip_pri_acc  <- read_csv(here("data", "hip_pri_acc.csv"))
 hip_sec_acc  <- read_csv(here("data", "hip_sec_acc.csv"))
 back_pri_acc <- read_csv(here("data", "back_pri_acc.csv"))
 back_sec_acc <- read_csv(here("data", "back_sec_acc.csv"))
 
+# Compute kcal values
+cardio <- do.call(rbind, (lapply(unique(cardio$ID), get_kcal, df = cardio)))
 # Compute MET values
 cardio <- do.call(rbind, (lapply(unique(cardio$ID), get_MET, df = cardio)))
 # Get PAI categories by MET
 cardio <- get_PAI_categories(cardio)
-# Compute percent HR reserve values
-cardio <- do.call(rbind, (lapply(unique(cardio$ID), get_HR_res, df = cardio)))
-# Compute kcal values
-cardio <- do.call(rbind, (lapply(unique(cardio$ID), get_kcal, df = cardio)))
 
 # Merge related data frames
 hip <- hip_pri_acc %>% 
   select(-c(MAD, ENMO)) %>% 
   full_join(hip_sec_acc, by = c("ID", "speed")) %>% 
-  left_join(cardio, by = c("ID", "speed")) %>% 
-  select(-c(BF, V.E, V.O2, Evaluation, Date)) %>% 
-  select(ID, speed, AC, MAD, ENMO, kcal, VO2.kg, MET, HR, percent_HR_res, everything())
+  left_join(cardio, by = c("ID", "speed"))
 
 back <- back_pri_acc %>% 
   select(-c(MAD, ENMO)) %>% 
   full_join(back_sec_acc, by = c("ID", "speed")) %>% 
-  left_join(cardio, by = c("ID", "speed")) %>% 
-  select(-c(BF, V.E, V.O2, Evaluation, Date)) %>% 
-  select(ID, speed, AC, MAD, ENMO, kcal, VO2.kg, MET, HR, percent_HR_res, everything())
+  left_join(cardio, by = c("ID", "speed"))
 
 # 2. Sample descriptives --------------------------------------------------
 
+# Demographics
 samp_desc <- read_csv(here("data", "sample_descriptives_data.csv"))
-descriptives <- summarise(
+sample_descriptives <- summarise(
   .data = samp_desc,
-  age_mean    = round(mean(age), digits = 1),
-  age_sd      = round(sd(age), digits = 1),
-  weight_mean = round(mean(weight_kg), digits = 1),
-  weight_sd   = round(sd(weight_kg), digits = 1),
-  height_mean = round(mean(height_cm), digits = 1),
-  height_sd   = round(sd(height_cm), digits = 1),
-  BMI_mean    = round(mean(BMI_kgm2), digits = 1),
-  BMI_sd      = round(sd(BMI_kgm2), digits = 1),
-  fat_mean    = round(mean(body_fat), digits = 1),
-  fat_sd      = round(sd(body_fat), digits = 1)
+  age_mean       = round(mean(age), digits = 1),
+  age_sd         = round(sd(age), digits = 1),
+  body_mass_mean = round(mean(body_mass_kg), digits = 1),
+  body_mass_sd   = round(sd(body_mass_kg), digits = 1),
+  height_mean    = round(mean(height_cm), digits = 1),
+  height_sd      = round(sd(height_cm), digits = 1),
+  BMI_mean       = round(mean(BMI_kgm2), digits = 1),
+  BMI_sd         = round(sd(BMI_kgm2), digits = 1),
+  fat_mean       = round(mean(body_fat), digits = 1),
+  fat_sd         = round(sd(body_fat), digits = 1)
 )
 sex <- table(samp_desc$sex)
+
+# Cardiorespiratory and accelerometry
+hip_descriptives <- hip %>% 
+  group_by(speed) %>% 
+  summarise(
+    n             = n(),
+    kcal_mean     = myround(mean(kcal), 2),
+    kcal_sd       = myround(sd(kcal), 2),
+    MET_mean      = myround(mean(MET), 2),
+    MET_sd        = myround(sd(MET), 2),
+    hip_AC_mean   = round(mean(AC, na.rm = TRUE), 0),
+    hip_AC_sd     = round(sd(AC, na.rm = TRUE), 0),
+    hip_MAD_mean  = round(mean(MAD, na.rm = TRUE), 0),
+    hip_MAD_sd    = round(sd(MAD, na.rm = TRUE), 0),
+    hip_ENMO_mean = round(mean(ENMO, na.rm = TRUE), 0), 
+    hip_ENMO_sd   = round(sd(ENMO, na.rm = TRUE), 0)
+  )
+
+back_descriptives <- back %>% 
+  group_by(speed) %>% 
+  summarise(
+    n              = n(),
+    kcal_mean      = myround(mean(kcal), 2),
+    kcal_sd        = myround(sd(kcal), 2),
+    MET_mean       = myround(mean(MET), 2),
+    MET_sd         = myround(sd(MET), 2),
+    back_AC_mean   = round(mean(AC, na.rm = TRUE), 0),
+    back_AC_sd     = round(sd(AC, na.rm = TRUE), 0),
+    back_MAD_mean  = round(mean(MAD, na.rm = TRUE), 0),
+    back_MAD_sd    = round(sd(MAD, na.rm = TRUE), 0),
+    back_ENMO_mean = round(mean(ENMO, na.rm = TRUE), 0), 
+    back_ENMO_sd   = round(sd(ENMO, na.rm = TRUE), 0)
+  )
+
+## Merging both accelerometer placements
+## For cardio variables, keeping back due to larger n
+descriptives <- hip_descriptives %>% 
+  select(-c(n, kcal_mean, kcal_sd, MET_mean, MET_sd)) %>% 
+  full_join(back_descriptives, by = "speed") %>% 
+  select(
+    speed, n, kcal_mean, kcal_sd, MET_mean, MET_sd,
+    hip_AC_mean, hip_AC_sd, back_AC_mean, back_AC_sd,
+    hip_MAD_mean, hip_MAD_sd, back_MAD_mean, back_MAD_sd,
+    hip_ENMO_mean, hip_ENMO_sd, back_ENMO_mean, back_ENMO_sd,
+  )
 
 # 3. Data analysis --------------------------------------------------------
 
@@ -73,7 +115,7 @@ sex <- table(samp_desc$sex)
 # Hip accelerometer
 ## AC
 hip_AC_model <- lme(
-  fixed = kcal ~ AC + I(AC^2) + Weight,
+  fixed = kcal ~ AC + I(AC^2) + Body_mass,
   random = ~ 1 | ID,
   method = "ML",
   correlation = corAR1(),
@@ -84,7 +126,7 @@ r2_hip_AC_model <- rsquared(hip_AC_model)
 
 ## MAD
 hip_MAD_model <- lme(
-  fixed = kcal ~ MAD + I(MAD^2) + Weight,
+  fixed = kcal ~ MAD + I(MAD^2) + Body_mass,
   random = ~ 1 | ID,
   method = "ML",
   correlation = corAR1(),
@@ -95,7 +137,7 @@ r2_hip_MAD_model <- rsquared(hip_MAD_model)
 
 ## ENMO
 hip_ENMO_model <- lme(
-  fixed = kcal ~ ENMO + I(ENMO^2) + Weight,
+  fixed = kcal ~ ENMO + I(ENMO^2) + Body_mass,
   random = ~ 1 | ID,
   method = "ML",
   correlation = corAR1(),
@@ -107,7 +149,7 @@ r2_hip_ENMO_model <- rsquared(hip_ENMO_model)
 # Back accelerometer
 ## AC
 back_AC_model <- lme(
-  fixed = kcal ~ AC + I(AC^2) + Weight,
+  fixed = kcal ~ AC + I(AC^2) + Body_mass,
   random = ~ 1 | ID,
   method = "ML",
   correlation = corAR1(),
@@ -118,7 +160,7 @@ r2_back_AC_model <- rsquared(back_AC_model)
 
 ## MAD
 back_MAD_model <- lme(
-  fixed = kcal ~ MAD + I(MAD^2) + Weight,
+  fixed = kcal ~ MAD + I(MAD^2) + Body_mass,
   random = ~ 1 | ID,
   method = "ML",
   correlation = corAR1(),
@@ -129,7 +171,7 @@ r2_back_MAD_model <- rsquared(back_MAD_model)
 
 ## ENMO
 back_ENMO_model <- lme(
-  fixed = kcal ~ ENMO + I(ENMO^2) + Weight,
+  fixed = kcal ~ ENMO + I(ENMO^2) + Body_mass,
   random = ~ 1 | ID,
   method = "ML",
   correlation = corAR1(),
@@ -196,38 +238,38 @@ cp_back_ENMO_ROC_VIG <- coords(back_ENMO_ROC_VIG, x = "best", best.method = "clo
 # Mixed models
 ## Hip accelerometer
 ### AC
-fix_eff    <- kcal ~ AC + I(AC^2) + Weight
+fix_eff    <- kcal ~ AC + I(AC^2) + Body_mass
 rand_eff   <- ~ 1 | ID
 acc_metric <- "AC"
 LOOCV_hip_AC_model <- do.call(rbind, (lapply(unique(hip$ID), cross_validate_mixed_model, df = hip)))
 
 ### MAD
-fix_eff    <- kcal ~ MAD + I(MAD^2) + Weight
+fix_eff    <- kcal ~ MAD + I(MAD^2) + Body_mass
 rand_eff   <- ~ 1 | ID
 acc_metric <- "MAD"
 LOOCV_hip_MAD_model <- do.call(rbind, (lapply(unique(hip$ID), cross_validate_mixed_model, df = hip)))
 
 ### ENMO
-fix_eff    <- kcal ~ ENMO + I(ENMO^2) + Weight
+fix_eff    <- kcal ~ ENMO + I(ENMO^2) + Body_mass
 rand_eff   <- ~ 1 | ID
 acc_metric <- "ENMO"
 LOOCV_hip_ENMO_model <- do.call(rbind, (lapply(unique(hip$ID), cross_validate_mixed_model, df = hip)))
 
 ## Back accelerometer
 ### AC
-fix_eff    <- kcal ~ AC + I(AC^2) + Weight
+fix_eff    <- kcal ~ AC + I(AC^2) + Body_mass
 rand_eff   <- ~ 1 | ID
 acc_metric <- "AC"
 LOOCV_back_AC_model <- do.call(rbind, (lapply(unique(back$ID), cross_validate_mixed_model, df = back)))
 
 ### MAD
-fix_eff    <- kcal ~ MAD + I(MAD^2) + Weight
+fix_eff    <- kcal ~ MAD + I(MAD^2) + Body_mass
 rand_eff   <- ~ 1 | ID
 acc_metric <- "MAD"
 LOOCV_back_MAD_model <- do.call(rbind, (lapply(unique(back$ID), cross_validate_mixed_model, df = back)))
 
 ### ENMO
-fix_eff    <- kcal ~ ENMO + I(ENMO^2) + Weight
+fix_eff    <- kcal ~ ENMO + I(ENMO^2) + Body_mass
 rand_eff   <- ~ 1 | ID
 acc_metric <- "ENMO"
 LOOCV_back_ENMO_model <- do.call(rbind, (lapply(unique(back$ID), cross_validate_mixed_model, df = back)))
