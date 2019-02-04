@@ -4,7 +4,7 @@ This repository contains data analysis resources from the manuscript "Accelerome
 
  ---
 
-**Authors:**
+**Manuscript authors:**
 
 Florêncio Diniz-Sousa, Lucas Veras, José Carlos Ribeiro, Giorjines Boppre, Vítor Devezas, Hugo Santos-Sousa, John Preto, Leandro Machado, João Paulo Vilas-Boas, José Oliveira, Hélder Fonseca
 
@@ -12,7 +12,7 @@ Florêncio Diniz-Sousa, Lucas Veras, José Carlos Ribeiro, Giorjines Boppre, Ví
 
 In the main directory is the [data analysis R script](analysis.R).
 
-You can find the data analysis report here **insert link**.
+You can find the data analysis report [here](https://verasls.github.io/EE_PAI_ACC_obese/Rmd/index.html).
 
 There are 3 subdirectories in this repository:
 
@@ -28,7 +28,7 @@ Subdirectory **R** contains all user-defined functions used in the data analysis
 
 Subdirectory **Rmd** contains resources from data analysis report. A .Rmd and a .html file for the report, a .bib file or the references and a .csl file for the citation style. 
 
-The html version of the report can be found here **insert link**.
+The html version of the report can be found [here](https://verasls.github.io/EE_PAI_ACC_obese/Rmd/index.html).
 
 ## [figs](figs/) contents
 
