@@ -12,7 +12,7 @@ Florêncio Diniz-Sousa, Lucas Veras, José Carlos Ribeiro, Giorjines Boppre, Ví
 
 In the main directory is the [data analysis R script](analysis.R).
 
-You can find the data analysis report [here](https://verasls.github.io/EE_PAI_ACC_obese/Rmd/index.html).
+You can find the data analysis report [here](https://verasls.github.io/pages/EE_PAI_ACC_obese_data_analysis_report.html).
 
 There are 3 subdirectories in this repository:
 
@@ -26,9 +26,9 @@ Subdirectory **R** contains all user-defined functions used in the data analysis
 
 ## [Rmd](Rmd/) contents
 
-Subdirectory **Rmd** contains resources from data analysis report. A .Rmd and a .html file for the report, a .bib file or the references and a .csl file for the citation style. 
+Subdirectory **Rmd** contains resources from data analysis report. A .Rmd file for the report, a .bib file or the references and a .csl file for the citation style. 
 
-The html version of the report can be found [here](https://verasls.github.io/EE_PAI_ACC_obese/Rmd/index.html).
+The html version of the report can be visualized [here](https://verasls.github.io/pages/EE_PAI_ACC_obese_data_analysis_report.html).
 
 ## [figs](figs/) contents
 
