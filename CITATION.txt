@@ -1,0 +1,17 @@
+To reference this repository in publications, please cite as follows:
+
+Veras L. verasls/EE_PAI_ACC_obese: Accelerometry calibration in people with class II-III obesity: Energy expenditure prediction and physical activity intensity identification (Version v1.0.0). Zenodo; 2019.
+
+BibTeX entry:
+
+@misc{lucas_veras_2019_2571450,
+  author       = {Lucas Veras},
+  title        = {{verasls/EE_PAI_ACC_obese: Accelerometry 
+                   calibration in people with class II-III obesity:
+                   Energy expenditure prediction and physical
+                   activity intensity identification}},
+  month        = feb,
+  year         = 2019,
+  doi          = {10.5281/zenodo.2571450},
+  url          = {https://doi.org/10.5281/zenodo.2571450}
+}
