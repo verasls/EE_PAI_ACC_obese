@@ -32,8 +32,8 @@ hip_AC_BA_plot <- ggplot(data = LOOCV_hip_AC_model) +
   theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
   labs(
     title = "AC",
-    x = "Mean of Measured and Predicted EE (kcal)",
-    y = "Difference of Measured and Predicted EE (kcal)"
+    x = bquote("Mean of Measured and Predicted EE" ~ (kcal^.~min^-1)),
+    y = bquote("Difference of Measured and Predicted EE" ~ (kcal^.~min^-1))
   )
 
 # Hip MAD -----------------------------------------------------------------
@@ -56,8 +56,8 @@ hip_MAD_BA_plot <- ggplot(data = LOOCV_hip_MAD_model) +
   theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
   labs(
     title = "MAD",
-    x = "Mean of Measured and Predicted EE (kcal)",
-    y = "Difference of Measured and Predicted EE (kcal)"
+    x = bquote("Mean of Measured and Predicted EE" ~ (kcal^.~min^-1)),
+    y = bquote("Difference of Measured and Predicted EE" ~ (kcal^.~min^-1))
   )
 
 # Hip ENMO ----------------------------------------------------------------
@@ -80,8 +80,8 @@ hip_ENMO_BA_plot <- ggplot(data = LOOCV_hip_ENMO_model) +
   theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
   labs(
     title = "ENMO",
-    x = "Mean of Measured and Predicted EE (kcal)",
-    y = "Difference of Measured and Predicted EE (kcal)"
+    x = bquote("Mean of Measured and Predicted EE" ~ (kcal^.~min^-1)),
+    y = bquote("Difference of Measured and Predicted EE" ~ (kcal^.~min^-1))
   )
 
 # Back AC -----------------------------------------------------------------
@@ -104,8 +104,8 @@ back_AC_BA_plot <- ggplot(data = LOOCV_back_AC_model) +
   theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
   labs(
     title = "AC",
-    x = "Mean of Measured and Predicted EE (kcal)",
-    y = "Difference of Measured and Predicted EE (kcal)"
+    x = bquote("Mean of Measured and Predicted EE" ~ (kcal^.~min^-1)),
+    y = bquote("Difference of Measured and Predicted EE" ~ (kcal^.~min^-1))
   )
 
 # Back MAD ----------------------------------------------------------------
@@ -128,8 +128,8 @@ back_MAD_BA_plot <- ggplot(data = LOOCV_back_MAD_model) +
   theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
   labs(
     title = "MAD",
-    x = "Mean of Measured and Predicted EE (kcal)",
-    y = "Difference of Measured and Predicted EE (kcal)"
+    x = bquote("Mean of Measured and Predicted EE" ~ (kcal^.~min^-1)),
+    y = bquote("Difference of Measured and Predicted EE" ~ (kcal^.~min^-1))
   )
 
 # Back ENMO ---------------------------------------------------------------
@@ -152,8 +152,8 @@ back_ENMO_BA_plot <- ggplot(data = LOOCV_back_ENMO_model) +
   theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
   labs(
     title = "ENMO",
-    x = "Mean of Measured and Predicted EE (kcal)",
-    y = "Difference of Measured and Predicted EE (kcal)"
+    x = bquote("Mean of Measured and Predicted EE" ~ (kcal^.~min^-1)),
+    y = bquote("Difference of Measured and Predicted EE" ~ (kcal^.~min^-1))
   )
 
 # Plot grid ---------------------------------------------------------------
@@ -168,7 +168,7 @@ BA_plot_grid <- plot_grid(
 )
 
 # Uncomment lines below to save plot
-#   ggsave(
-#     filename = "figs/fig1.pdf", 
-#     plot = BA_plot_grid, width = 40, height = 36, dpi = 300, units = "cm"
-#   )
+# ggsave(
+#   filename = "figs/fig1.pdf",
+#   plot = BA_plot_grid, width = 40, height = 36, dpi = 300, units = "cm"
+# )
