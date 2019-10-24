@@ -9,7 +9,7 @@ output:
     toc_float: 
       collapsed: false
     theme: flatly
-    code_folding: "show"
+    code_folding: "hide"
 editor_options: 
   chunk_output_type: console
 bibliography: bibliography.bib
@@ -115,8 +115,6 @@ sex <- table(samp_desc$sex)
 
 Linear mixed models (LMM) [[@fieldR; @bates15]](#refs) were applied to predict EE. Distinct LMMs were developed with data from hip and back accelerometer placement using the `lme` function of the `nlme` [package](https://cran.r-project.org/web/packages/nlme/nlme.pdf). Covariance structure used was an autoregressive process of order 1 (`correlation = corAR1`) and maximum likelihood method was used for estimating parameters (`method = "ML"`). AC, MAD, ENMO, sex, age, body mass and BMI were tested as fixed effects, but only body mass and the accelerometer metrics have shown to be significant predictors (*e.g.:* `fixed = kcal ~ AC + I(AC^2) + Body_mass`). Although random slopes have been tested, only the inclusion of random intercept has showed model improvement (`random = ~ 1 | ID`). Linear, quadratic and cubic polynomial simulations were also tested, whereas the last one did not contribute significantly to the models. Final models were chosen according to -2 log-likelihood statistics. Traditional coefficient of determination (R^2^) was represented by conditional R^2^ [[@naka13]](#refs) computed with `rsquared` function of the `piecewiseSEM` [package](http://jslefche.github.io/piecewiseSEM/articles/piecewiseSEM.html), that estimates the variance explained by the whole model [[@r216]](#refs).
 
-Code to build the LMMs, as well as their summary and R^2^, can be found below.
-
 ```{r LMM}
 # Hip accelerometer
 ## AC
@@ -211,7 +209,7 @@ Cut-points that identify SA and PAI created from AC, MAD and ENMO were obtained 
 hip_AC_ROC_SED <- roc(SED_CAT_by_MET ~ AC, ci = TRUE, data = hip, na.rm = TRUE)
 hip_AC_ROC_MOD <- roc(MOD_CAT_by_MET ~ AC, ci = TRUE, data = hip, na.rm = TRUE)
 hip_AC_ROC_VIG <- roc(VIG_CAT_by_MET ~ AC, ci = TRUE, data = hip, na.rm = TRUE)
-cp_hip_AC_ROC_SED <- coords(hip_AC_ROC_SED, x = "best", best.method = "closest.topleft")
+cp_hip_AC_ROC_SED <- coords(hip_AC_ROC_SED, x = 13)
 cp_hip_AC_ROC_MOD <- coords(hip_AC_ROC_MOD, x = "best", best.method = "closest.topleft")
 cp_hip_AC_ROC_VIG <- coords(hip_AC_ROC_VIG, x = "best", best.method = "closest.topleft")
 
@@ -219,7 +217,7 @@ cp_hip_AC_ROC_VIG <- coords(hip_AC_ROC_VIG, x = "best", best.method = "closest.t
 hip_MAD_ROC_SED <- roc(SED_CAT_by_MET ~ MAD, ci = TRUE, data = hip, na.rm = TRUE)
 hip_MAD_ROC_MOD <- roc(MOD_CAT_by_MET ~ MAD, ci = TRUE, data = hip, na.rm = TRUE)
 hip_MAD_ROC_VIG <- roc(VIG_CAT_by_MET ~ MAD, ci = TRUE, data = hip, na.rm = TRUE)
-cp_hip_MAD_ROC_SED <- coords(hip_MAD_ROC_SED, x = "best", best.method = "closest.topleft")
+cp_hip_MAD_ROC_SED <- coords(hip_MAD_ROC_SED, x = 8)
 cp_hip_MAD_ROC_MOD <- coords(hip_MAD_ROC_MOD, x = "best", best.method = "closest.topleft")
 cp_hip_MAD_ROC_VIG <- coords(hip_MAD_ROC_VIG, x = "best", best.method = "closest.topleft")
 
@@ -227,7 +225,7 @@ cp_hip_MAD_ROC_VIG <- coords(hip_MAD_ROC_VIG, x = "best", best.method = "closest
 hip_ENMO_ROC_SED <- roc(SED_CAT_by_MET ~ ENMO, ci = TRUE, data = hip, na.rm = TRUE)
 hip_ENMO_ROC_MOD <- roc(MOD_CAT_by_MET ~ ENMO, ci = TRUE, data = hip, na.rm = TRUE)
 hip_ENMO_ROC_VIG <- roc(VIG_CAT_by_MET ~ ENMO, ci = TRUE, data = hip, na.rm = TRUE)
-cp_hip_ENMO_ROC_SED <- coords(hip_ENMO_ROC_SED, x = "best", best.method = "closest.topleft")
+cp_hip_ENMO_ROC_SED <- coords(hip_ENMO_ROC_SED, x = 37)
 cp_hip_ENMO_ROC_MOD <- coords(hip_ENMO_ROC_MOD, x = "best", best.method = "closest.topleft")
 cp_hip_ENMO_ROC_VIG <- coords(hip_ENMO_ROC_VIG, x = "best", best.method = "closest.topleft")
 
@@ -236,7 +234,7 @@ cp_hip_ENMO_ROC_VIG <- coords(hip_ENMO_ROC_VIG, x = "best", best.method = "close
 back_AC_ROC_SED <- roc(SED_CAT_by_MET ~ AC, ci = TRUE, data = back, na.rm = TRUE)
 back_AC_ROC_MOD <- roc(MOD_CAT_by_MET ~ AC, ci = TRUE, data = back, na.rm = TRUE)
 back_AC_ROC_VIG <- roc(VIG_CAT_by_MET ~ AC, ci = TRUE, data = back, na.rm = TRUE)
-cp_back_AC_ROC_SED <- coords(back_AC_ROC_SED, x = "best", best.method = "closest.topleft")
+cp_back_AC_ROC_SED <- coords(back_AC_ROC_SED, x = 10)
 cp_back_AC_ROC_MOD <- coords(back_AC_ROC_MOD, x = "best", best.method = "closest.topleft")
 cp_back_AC_ROC_VIG <- coords(back_AC_ROC_VIG, x = "best", best.method = "closest.topleft")
 
@@ -244,7 +242,7 @@ cp_back_AC_ROC_VIG <- coords(back_AC_ROC_VIG, x = "best", best.method = "closest
 back_MAD_ROC_SED <- roc(SED_CAT_by_MET ~ MAD, ci = TRUE, data = back, na.rm = TRUE)
 back_MAD_ROC_MOD <- roc(MOD_CAT_by_MET ~ MAD, ci = TRUE, data = back, na.rm = TRUE)
 back_MAD_ROC_VIG <- roc(VIG_CAT_by_MET ~ MAD, ci = TRUE, data = back, na.rm = TRUE)
-cp_back_MAD_ROC_SED <- coords(back_MAD_ROC_SED, x = "best", best.method = "closest.topleft")
+cp_back_MAD_ROC_SED <- coords(back_MAD_ROC_SED, x = 7)
 cp_back_MAD_ROC_MOD <- coords(back_MAD_ROC_MOD, x = "best", best.method = "closest.topleft")
 cp_back_MAD_ROC_VIG <- coords(back_MAD_ROC_VIG, x = "best", best.method = "closest.topleft")
 
@@ -252,7 +250,7 @@ cp_back_MAD_ROC_VIG <- coords(back_MAD_ROC_VIG, x = "best", best.method = "close
 back_ENMO_ROC_SED <- roc(SED_CAT_by_MET ~ ENMO, ci = TRUE, data = back, na.rm = TRUE)
 back_ENMO_ROC_MOD <- roc(MOD_CAT_by_MET ~ ENMO, ci = TRUE, data = back, na.rm = TRUE)
 back_ENMO_ROC_VIG <- roc(VIG_CAT_by_MET ~ ENMO, ci = TRUE, data = back, na.rm = TRUE)
-cp_back_ENMO_ROC_SED <- coords(back_ENMO_ROC_SED, x = "best", best.method = "closest.topleft")
+cp_back_ENMO_ROC_SED <- coords(back_ENMO_ROC_SED, x = 34)
 cp_back_ENMO_ROC_MOD <- coords(back_ENMO_ROC_MOD, x = "best", best.method = "closest.topleft")
 cp_back_ENMO_ROC_VIG <- coords(back_ENMO_ROC_VIG, x = "best", best.method = "closest.topleft")
 ```
@@ -305,7 +303,7 @@ kable(ROC_summary, align = c("l", "l", "l", "c", "c", "c", "c"), col.names = c("
 
 The validity of equations and cut-points developed were posteriorly analyzed through leave-one-out cross-validation (LOOCV) method [[@staud12]](#refs). Hence, each participant’s data was separated into a testing dataset (one at a time) with the remaining data being in the training dataset. New LMM and ROC curves, with the same structure as determined for the entire sample, were developed using the training dataset to predict kilocalories and identify SA or PAI for the only participant in the testing dataset. This process was repeated for all participants (`r nrow(samp_desc)` times).  
 
-LOOCV of the LMM was done with the `cross_validate_mixed_model` [function](https://github.com/verasls/EE_PAI_ACC_obese/blob/master/R/cross_validate_mixed_model.R) and is shown below.
+LOOCV of the LMM was done with the `cross_validate_mixed_model` [function](https://github.com/verasls/EE_PAI_ACC_obese/blob/master/R/cross_validate_mixed_model.R).
 
 ```{r LMM_LOOCV}
 # Leave-one-out cross-validation
@@ -349,7 +347,7 @@ acc_metric <- "ENMO"
 LOOCV_back_ENMO_model <- do.call(rbind, (lapply(unique(back$ID), cross_validate_mixed_model, df = back)))
 ```
 
-LOOCV of the ROC curves was done with the `cross_validate_ROC_curves` [function](https://github.com/verasls/EE_PAI_ACC_obese/blob/master/R/cross_validate_ROC_curves.R) and is shown below.
+LOOCV of the ROC curves was done with the `cross_validate_ROC_curves` [function](https://github.com/verasls/EE_PAI_ACC_obese/blob/master/R/cross_validate_ROC_curves.R).
 
 ```{r ROC_LOOCV}
 # Leave-one-out cross-validation
@@ -520,7 +518,13 @@ kappa_hip_ENMO_MOD  <- kappa2(select(LOOCV_hip_ENMO_ROC, MOD_CAT_by_MET, MOD_CAT
 kappa_hip_ENMO_VIG  <- kappa2(select(LOOCV_hip_ENMO_ROC, VIG_CAT_by_MET, VIG_CAT_by_ROC))
 kappa_hip_ENMO_glob <- kappa2(select(LOOCV_hip_ENMO_ROC, INTENS_CAT_by_MET, INTENS_CAT_by_ROC), 
                               weight = "squared")
+```
 
+```{r source_cp, echo=FALSE}
+source(here("new_cutpoints.R"))
+```
+
+```{r kappa_hip_df}
 kappa_hip <- data.frame(
   acc_metric = c(rep("AC", 4), rep("MAD", 4), rep("ENMO", 4)),
   intens_cat = c("Sedentary", "Moderate", "Vigorous", "Global"),
@@ -530,6 +534,7 @@ kappa_hip <- data.frame(
   weight     = c(rep("unweighted", 3), "quadratic")
 )
 kable(kappa_hip, col.names = c("Accelerometer Metric", "Intensity Category", "Kappa", "Weight"))
+
 ```
 
 Kappa statistic results for all accelerometer metrics at back placement can be found on table below. Similar to hip placement for all metrics, VPA showed the lowest Kappa coefficient (classified as moderate). SA, LPA and MPA showed Kappa coefficients classified as substantial or almost perfect.
@@ -556,7 +561,14 @@ kappa_back_ENMO_MOD  <- kappa2(select(LOOCV_back_ENMO_ROC, MOD_CAT_by_MET, MOD_C
 kappa_back_ENMO_VIG  <- kappa2(select(LOOCV_back_ENMO_ROC, VIG_CAT_by_MET, VIG_CAT_by_ROC))
 kappa_back_ENMO_glob <- kappa2(select(LOOCV_back_ENMO_ROC, INTENS_CAT_by_MET, INTENS_CAT_by_ROC), 
                                weight = "squared")
+```
 
+```{r source_cp2, echo=FALSE}
+source(here("new_cutpoints.R"))
+```
+
+
+```{r kappa_back_df}
 kappa_back <- data.frame(
   acc_metric = c(rep("AC", 4), rep("MAD", 4), rep("ENMO", 4)),
   intens_cat = c("Sedentary", "Moderate", "Vigorous", "Global"),
@@ -566,6 +578,7 @@ kappa_back <- data.frame(
   weight     = c(rep("unweighted", 3), "quadratic")
 )
 kable(kappa_back, col.names = c("Accelerometer Metric", "Intensity Category", "Kappa", "Weight"))
+
 ```
 
 ## Percent agreement
@@ -575,26 +588,6 @@ Percent agreement from global classification was also calculated. Hence, SA, LPA
 Table below shows percent agreement for all accelerometer placements and metrics. 
 
 ```{r percent_agreement}
-# Hip accelerometer
-## AC
-perc_agree_hip_AC_ROC <- percent_agreement(LOOCV_hip_AC_ROC, "INTENS_CAT_by_MET", "INTENS_CAT_by_ROC")
-
-## MAD
-perc_agree_hip_MAD_ROC <- percent_agreement(LOOCV_hip_MAD_ROC, "INTENS_CAT_by_MET", "INTENS_CAT_by_ROC")
-
-## ENMO
-perc_agree_hip_ENMO_ROC <- percent_agreement(LOOCV_hip_ENMO_ROC, "INTENS_CAT_by_MET", "INTENS_CAT_by_ROC")
-
-# Back accelerometer
-## AC
-perc_agree_back_AC_ROC <- percent_agreement(LOOCV_back_AC_ROC, "INTENS_CAT_by_MET", "INTENS_CAT_by_ROC")
-
-## MAD
-perc_agree_back_MAD_ROC <- percent_agreement(LOOCV_back_MAD_ROC, "INTENS_CAT_by_MET", "INTENS_CAT_by_ROC")
-
-## ENMO
-perc_agree_back_ENMO_ROC <- percent_agreement(LOOCV_back_ENMO_ROC, "INTENS_CAT_by_MET", "INTENS_CAT_by_ROC")
-
 perc_agree <- data.frame(
   acc_placement     = c(rep("Hip", 3), rep("Back", 3)),
   acc_metric        = rep(c("AC", "MAD", "ENMO"), 2),
@@ -614,7 +607,7 @@ Accuracy comparison of predicted EE among accelerometer metrics in each hip and 
 
 To do these analysis, new data frames needed to be built, putting the absolute errors in a single variable and grouping them by accelerometer placement and metric in another variable.
 
-Code to tidy the data is shown below, together with prediction accuracy comparison among accelerometer metrics. In both accelerometer placements, no differences in prediction accuracy were observed among accelerometer metrics (*p*>0.05).
+Prediction accuracy comparison among accelerometer metrics is shown below. In both accelerometer placements, no differences in prediction accuracy were observed among accelerometer metrics (*p*>0.05).
 
 ```{r predic_comp_acc_metrics}
 # Hip accelerometer (among accelerometer metrics)
@@ -730,7 +723,7 @@ To compare classification agreement, ordinal classification (1 – SA, 2 – LPA
 
 As happened with prediction accuracy comparison, new data frames needed to be built with classification errors in a single variable and grouped in another variable by accelerometer placement and metric.
 
-Code to tidy the data is shown below, together with classification agreement comparison among accelerometer metrics. For hip accelerometer placement, no differences of classification agreement among accelerometer metrics were observed (*p*>0.05). For back accelerometer placement, although Kruskal-Wallis test *p* value was lower than 0.05, when *post hoc* tests were applied, no differences in classification agreement between each pair of accelerometer metrics were observed (*p*>0.05).
+Classification agreement comparison among accelerometer metrics is shown below. For hip accelerometer placement, no differences of classification agreement among accelerometer metrics were observed (*p*>0.05). For back accelerometer placement, although Kruskal-Wallis test *p* value was lower than 0.05, when *post hoc* tests were applied, no differences in classification agreement between each pair of accelerometer metrics were observed (*p*>0.05).
 
 ```{r class_agree_acc_metrics}
 # Hip accelerometer (among accelerometer metrics)
