@@ -2,7 +2,7 @@
 
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.2571450.svg)](https://doi.org/10.5281/zenodo.2571450)
 
-This repository contains data analysis resources from the manuscript "Accelerometry calibration in people with class II-III obesity: energy expenditure prediction and physical activity intensity identification".
+This repository contains data analysis resources from the [paper](https://doi.org/10.1016/j.gaitpost.2019.11.008) "Accelerometry calibration in people with class II-III obesity: energy expenditure prediction and physical activity intensity identification" published in Gait and Posture.
 
  ---
 
